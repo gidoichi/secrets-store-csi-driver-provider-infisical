@@ -6,31 +6,19 @@ import (
 	"os"
 	"os/signal"
 
-	"sigs.k8s.io/secrets-store-csi-driver/provider/fake"
-	providerv1alpha1 "sigs.k8s.io/secrets-store-csi-driver/provider/v1alpha1"
+	"github.com/gidoichi/secrets-store-csi-driver-provider-infisical/server"
 )
 
 func main() {
 	socketPath := "/etc/kubernetes/secrets-store-csi-providers/infisical.sock"
 	os.MkdirAll("/etc/kubernetes/secrets-store-csi-providers", 0755)
-	server, err := fake.NewMocKCSIProviderServer(socketPath)
+	provider, err := server.NewCSIProviderServer(socketPath)
 	if err != nil {
 		panic(fmt.Errorf("unable to create server: %v", err))
 	}
-	defer server.Stop()
+	defer provider.Stop()
 
-	objectVersions := map[string]string{"foo": "v1"}
-	server.SetObjects(objectVersions)
-	files := []*providerv1alpha1.File{
-		{
-			Path:     "foo",
-			Mode:     0666,
-			Contents: []byte("foo"),
-		},
-	}
-	server.SetFiles(files)
-
-	if err := server.Start(); err != nil {
+	if err := provider.Start(); err != nil {
 		panic(fmt.Errorf("unable to start server: %v", err))
 	}
 
