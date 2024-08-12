@@ -10,6 +10,7 @@ import (
 	"encoding/base64"
 
 	"google.golang.org/grpc"
+	"gopkg.in/yaml.v2"
 	"sigs.k8s.io/secrets-store-csi-driver/provider/v1alpha1"
 )
 
@@ -65,12 +66,12 @@ type attributes struct {
 }
 
 type object struct {
-	Name string `json:"objectName"`
+	Name string `yaml:"objectName"`
 }
 
-func (a *attributes) GetObjects() ([]object, error) {
+func (a *attributes) ParseObjects() ([]object, error) {
 	var objects []object
-	if err := json.Unmarshal([]byte(a.Objects), &objects); err != nil {
+	if err := yaml.Unmarshal([]byte(a.Objects), &objects); err != nil {
 		return nil, err
 	}
 	return objects, nil
@@ -92,7 +93,7 @@ func (m *CSIProviderServer) Mount(ctx context.Context, req *v1alpha1.MountReques
 		return nil, fmt.Errorf("failed to unmarshal file permission, error: %w", err)
 	}
 
-	objects, err := attrib.GetObjects()
+	objects, err := attrib.ParseObjects()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get objects, error: %w", err)
 	}
