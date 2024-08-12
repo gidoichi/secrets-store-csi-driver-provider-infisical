@@ -14,11 +14,14 @@ import (
 	"sigs.k8s.io/secrets-store-csi-driver/provider/v1alpha1"
 )
 
+var (
+	ErrorInvalidSecretProviderClass = "InvalidSecretProviderClass"
+)
+
 type CSIProviderServer struct {
 	grpcServer *grpc.Server
 	listener   net.Listener
 	socketPath string
-	errorCode  string
 }
 
 var _ v1alpha1.CSIDriverProviderServer = &CSIProviderServer{}
@@ -32,11 +35,6 @@ func NewCSIProviderServer(socketPath string) (*CSIProviderServer, error) {
 	}
 	v1alpha1.RegisterCSIDriverProviderServer(server, s)
 	return s, nil
-}
-
-// SetProviderErrorCode sets provider error code to return
-func (m *CSIProviderServer) SetProviderErrorCode(errorCode string) {
-	m.errorCode = errorCode
 }
 
 func (m *CSIProviderServer) Start() error {
@@ -57,6 +55,7 @@ func (m *CSIProviderServer) Stop() {
 	m.grpcServer.GracefulStop()
 }
 
+// TODO: specify these fields are required or optional
 type attributes struct {
 	Project        string `json:"projectSlug"`
 	Env            string `json:"envSlug"`
@@ -79,12 +78,16 @@ func (a *attributes) ParseObjects() ([]object, error) {
 
 // Mount implements provider csi-provider method
 func (m *CSIProviderServer) Mount(ctx context.Context, req *v1alpha1.MountRequest) (*v1alpha1.MountResponse, error) {
+	mountResponse := &v1alpha1.MountResponse{
+		Error: &v1alpha1.Error{},
+	}
 	var attrib attributes
 	var secret map[string]string
 	var filePermission os.FileMode
 
 	if err := json.Unmarshal([]byte(req.GetAttributes()), &attrib); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal attributes, error: %w", err)
+		mountResponse.Error.Code = ErrorInvalidSecretProviderClass
+		return mountResponse, fmt.Errorf("failed to unmarshal parameters, error: %w", err)
 	}
 	if err := json.Unmarshal([]byte(req.GetSecrets()), &secret); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal secrets, error: %w", err)
@@ -95,16 +98,18 @@ func (m *CSIProviderServer) Mount(ctx context.Context, req *v1alpha1.MountReques
 
 	objects, err := attrib.ParseObjects()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get objects, error: %w", err)
+		mountResponse.Error.Code = ErrorInvalidSecretProviderClass
+		return mountResponse, fmt.Errorf("failed to get objects, error: %w", err)
 	}
 
 	var objectVersions []*v1alpha1.ObjectVersion
 	for _, object := range objects {
 		objectVersions = append(objectVersions, &v1alpha1.ObjectVersion{
 			Id:      object.Name,
-			Version: "v1",
+			Version: "v1", // TODO: set secret version
 		})
 	}
+	mountResponse.ObjectVersion = objectVersions
 
 	var files []*v1alpha1.File
 	mode := int32(filePermission)
@@ -115,14 +120,9 @@ func (m *CSIProviderServer) Mount(ctx context.Context, req *v1alpha1.MountReques
 			Contents: []byte(base64.StdEncoding.EncodeToString([]byte(object.Name))),
 		})
 	}
+	mountResponse.Files = files
 
-	return &v1alpha1.MountResponse{
-		ObjectVersion: objectVersions,
-		Error: &v1alpha1.Error{
-			Code: m.errorCode,
-		},
-		Files: files,
-	}, nil
+	return mountResponse, nil
 }
 
 // Version implements provider csi-provider method
