@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net"
 	"os"
 
@@ -84,6 +85,8 @@ func (m *CSIProviderServer) Mount(ctx context.Context, req *v1alpha1.MountReques
 	var attrib attributes
 	var secret map[string]string
 	var filePermission os.FileMode
+
+	slog.Info("mount", "request", req)
 
 	if err := json.Unmarshal([]byte(req.GetAttributes()), &attrib); err != nil {
 		mountResponse.Error.Code = ErrorInvalidSecretProviderClass
