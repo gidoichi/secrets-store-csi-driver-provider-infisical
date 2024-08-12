@@ -11,7 +11,8 @@ import (
 
 func main() {
 	socketPath := "/etc/kubernetes/secrets-store-csi-providers/infisical.sock"
-	os.MkdirAll("/etc/kubernetes/secrets-store-csi-providers", 0755)
+	_ = os.MkdirAll("/etc/kubernetes/secrets-store-csi-providers", 0755)
+	_ = os.Remove(socketPath)
 	provider, err := server.NewCSIProviderServer(socketPath)
 	if err != nil {
 		panic(fmt.Errorf("unable to create server: %v", err))
