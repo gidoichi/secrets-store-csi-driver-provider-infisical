@@ -2,37 +2,43 @@ package server
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net"
 	"os"
 
-	"encoding/base64"
-
+	"github.com/gidoichi/secrets-store-csi-driver-provider-infisical/auth"
+	infisical "github.com/infisical/go-sdk"
 	"google.golang.org/grpc"
 	"gopkg.in/yaml.v2"
+	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/secrets-store-csi-driver/provider/v1alpha1"
 )
 
 var (
 	ErrorInvalidSecretProviderClass = "InvalidSecretProviderClass"
+	ErrorUnauthorized               = "Unauthorized"
+	ErrorBadRequest                 = "BadRequest"
 )
 
 type CSIProviderServer struct {
 	grpcServer *grpc.Server
 	listener   net.Listener
 	socketPath string
+	kubeClient *kubernetes.Clientset
 }
 
 var _ v1alpha1.CSIDriverProviderServer = &CSIProviderServer{}
 
 // NewCSIProviderServer returns a mock csi-provider grpc server
-func NewCSIProviderServer(socketPath string) (*CSIProviderServer, error) {
+func NewCSIProviderServer(socketPath string, kubeClient *kubernetes.Clientset) (*CSIProviderServer, error) {
 	server := grpc.NewServer()
 	s := &CSIProviderServer{
 		grpcServer: server,
 		socketPath: socketPath,
+		kubeClient: kubeClient,
 	}
 	v1alpha1.RegisterCSIDriverProviderServer(server, s)
 	return s, nil
@@ -58,11 +64,12 @@ func (m *CSIProviderServer) Stop() {
 
 // TODO: specify these fields are required or optional
 type attributes struct {
-	Project        string `json:"projectSlug"`
-	Env            string `json:"envSlug"`
-	Path           string `json:"secretsPath"`
-	AuthSecretName string `json:"authSecretName"`
-	Objects        string `json:"objects"`
+	Project             string `json:"projectSlug"`
+	Env                 string `json:"envSlug"`
+	Path                string `json:"secretsPath"`
+	AuthSecretName      string `json:"authSecretName"`
+	AuthSecretNamespace string `json:"authSecretNamespace"`
+	Objects             string `json:"objects"`
 }
 
 type object struct {
@@ -105,12 +112,42 @@ func (m *CSIProviderServer) Mount(ctx context.Context, req *v1alpha1.MountReques
 		return mountResponse, fmt.Errorf("failed to get objects, error: %w", err)
 	}
 
+	auth := auth.NewAuth(m.kubeClient, attrib.AuthSecretNamespace)
+	credentials, err := auth.TokenFromKubeSecret(ctx, attrib.AuthSecretName)
+	if err != nil {
+		mountResponse.Error.Code = ErrorBadRequest
+		return mountResponse, fmt.Errorf("failed to get credentials, error: %w", err)
+	}
+
+	infisicalClient := infisical.NewInfisicalClient(infisical.Config{})
+	if _, err := infisicalClient.Auth().UniversalAuthLogin(credentials.ID, credentials.Secret); err != nil {
+		mountResponse.Error.Code = ErrorUnauthorized
+		return mountResponse, fmt.Errorf("failed to login infisical, error: %w", err)
+	}
+	secrets, err := infisicalClient.Secrets().List(infisical.ListSecretsOptions{
+		ProjectSlug: attrib.Project,
+		Environment: attrib.Env,
+		SecretPath:  attrib.Path,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to list secrets, error: %w", err)
+	}
+
 	var objectVersions []*v1alpha1.ObjectVersion
-	for _, object := range objects {
-		objectVersions = append(objectVersions, &v1alpha1.ObjectVersion{
-			Id:      object.Name,
-			Version: "v1", // TODO: set secret version
-		})
+	toIndex := func(objects []object) map[string]int {
+		index := make(map[string]int)
+		for i, object := range objects {
+			index[object.Name] = i
+		}
+		return index
+	}(objects)
+	for _, secret := range secrets {
+		if index, ok := toIndex[secret.SecretKey]; ok {
+			objectVersions = append(objectVersions, &v1alpha1.ObjectVersion{
+				Id:      objects[index].Name,
+				Version: string(secret.Version),
+			})
+		}
 	}
 	mountResponse.ObjectVersion = objectVersions
 
