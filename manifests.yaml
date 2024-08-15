@@ -12,7 +12,7 @@ spec:
       labels:
         app: secrets-store-csi-driver-provider-infisical
     spec:
-      serviceAccountName: test-csi-provider
+      serviceAccountName: secrets-store-csi-driver-provider-infisical
       containers:
       - name: provider
         image: gidoichi/secrets-store-csi-driver-provider-infisical:latest
@@ -67,13 +67,13 @@ spec:
 kind: ServiceAccount
 apiVersion: v1
 metadata:
-  name: test-csi-provider
+  name: secrets-store-csi-driver-provider-infisical
   namespace: default
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: test-csi-provider
+  name: secrets-store-csi-driver-provider-infisical
 rules:
 - apiGroups: [""]
   resources: ["secrets"]
@@ -82,15 +82,15 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: test-csi-provider
+  name: secrets-store-csi-driver-provider-infisical
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: test-csi-provider
+  name: secrets-store-csi-driver-provider-infisical
 subjects:
 - kind: ServiceAccount
   namespace: default
-  name: test-csi-provider
+  name: secrets-store-csi-driver-provider-infisical
 ---
 apiVersion: secrets-store.csi.x-k8s.io/v1
 kind: SecretProviderClass
