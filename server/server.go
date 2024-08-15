@@ -124,9 +124,10 @@ func (s *CSIProviderServer) Mount(ctx context.Context, req *v1alpha1.MountReques
 		return mountResponse, fmt.Errorf("failed to login infisical, error: %w", err)
 	}
 	secrets, err := infisicalClient.Secrets().List(infisical.ListSecretsOptions{
-		ProjectSlug: attrib.Project,
-		Environment: attrib.Env,
-		SecretPath:  attrib.Path,
+		ProjectSlug:            attrib.Project,
+		Environment:            attrib.Env,
+		SecretPath:             attrib.Path,
+		ExpandSecretReferences: true,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to list secrets, error: %w", err)
