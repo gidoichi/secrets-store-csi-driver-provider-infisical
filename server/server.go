@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -10,10 +9,11 @@ import (
 	"os"
 
 	"github.com/gidoichi/secrets-store-csi-driver-provider-infisical/auth"
+	"github.com/gidoichi/secrets-store-csi-driver-provider-infisical/provider"
 	infisical "github.com/infisical/go-sdk"
 	"google.golang.org/grpc"
 	"gopkg.in/yaml.v2"
-	"k8s.io/client-go/kubernetes"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/secrets-store-csi-driver/provider/v1alpha1"
 )
 
@@ -24,24 +24,26 @@ var (
 )
 
 type CSIProviderServer struct {
-	grpcServer *grpc.Server
-	listener   net.Listener
-	socketPath string
-	kubeClient *kubernetes.Clientset
+	grpcServer             *grpc.Server
+	listener               net.Listener
+	socketPath             string
+	auth                   auth.Auth
+	infisicalClientFactory provider.InfisicalClientFactory
 }
 
 var _ v1alpha1.CSIDriverProviderServer = &CSIProviderServer{}
 
 // NewCSIProviderServer returns a mock csi-provider grpc server
-func NewCSIProviderServer(socketPath string, kubeClient *kubernetes.Clientset) (*CSIProviderServer, error) {
+func NewCSIProviderServer(socketPath string, auth auth.Auth, infisicalClientFactory provider.InfisicalClientFactory) *CSIProviderServer {
 	server := grpc.NewServer()
 	s := &CSIProviderServer{
-		grpcServer: server,
-		socketPath: socketPath,
-		kubeClient: kubeClient,
+		grpcServer:             server,
+		socketPath:             socketPath,
+		auth:                   auth,
+		infisicalClientFactory: infisicalClientFactory,
 	}
 	v1alpha1.RegisterCSIDriverProviderServer(server, s)
-	return s, nil
+	return s
 }
 
 func (m *CSIProviderServer) Start() error {
@@ -85,7 +87,7 @@ func (a *attributes) ParseObjects() ([]object, error) {
 }
 
 // Mount implements provider csi-provider method
-func (m *CSIProviderServer) Mount(ctx context.Context, req *v1alpha1.MountRequest) (*v1alpha1.MountResponse, error) {
+func (s *CSIProviderServer) Mount(ctx context.Context, req *v1alpha1.MountRequest) (*v1alpha1.MountResponse, error) {
 	mountResponse := &v1alpha1.MountResponse{
 		Error: &v1alpha1.Error{},
 	}
@@ -106,20 +108,17 @@ func (m *CSIProviderServer) Mount(ctx context.Context, req *v1alpha1.MountReques
 		return nil, fmt.Errorf("failed to unmarshal file permission, error: %w", err)
 	}
 
-	objects, err := attrib.ParseObjects()
-	if err != nil {
-		mountResponse.Error.Code = ErrorInvalidSecretProviderClass
-		return mountResponse, fmt.Errorf("failed to get objects, error: %w", err)
+	kubeSecret := types.NamespacedName{
+		Namespace: attrib.AuthSecretNamespace,
+		Name:      attrib.AuthSecretName,
 	}
-
-	auth := auth.NewAuth(m.kubeClient, attrib.AuthSecretNamespace)
-	credentials, err := auth.TokenFromKubeSecret(ctx, attrib.AuthSecretName)
+	credentials, err := s.auth.TokenFromKubeSecret(ctx, kubeSecret)
 	if err != nil {
 		mountResponse.Error.Code = ErrorBadRequest
 		return mountResponse, fmt.Errorf("failed to get credentials, error: %w", err)
 	}
 
-	infisicalClient := infisical.NewInfisicalClient(infisical.Config{})
+	infisicalClient := s.infisicalClientFactory.NewClient(infisical.Config{})
 	if _, err := infisicalClient.Auth().UniversalAuthLogin(credentials.ID, credentials.Secret); err != nil {
 		mountResponse.Error.Code = ErrorUnauthorized
 		return mountResponse, fmt.Errorf("failed to login infisical, error: %w", err)
@@ -134,32 +133,20 @@ func (m *CSIProviderServer) Mount(ctx context.Context, req *v1alpha1.MountReques
 	}
 
 	var objectVersions []*v1alpha1.ObjectVersion
-	toIndex := func(objects []object) map[string]int {
-		index := make(map[string]int)
-		for i, object := range objects {
-			index[object.Name] = i
-		}
-		return index
-	}(objects)
-	for _, secret := range secrets {
-		if index, ok := toIndex[secret.SecretKey]; ok {
-			objectVersions = append(objectVersions, &v1alpha1.ObjectVersion{
-				Id:      objects[index].Name,
-				Version: string(secret.Version),
-			})
-		}
-	}
-	mountResponse.ObjectVersion = objectVersions
-
 	var files []*v1alpha1.File
 	mode := int32(filePermission)
-	for _, object := range objects {
+	for _, secret := range secrets {
+		objectVersions = append(objectVersions, &v1alpha1.ObjectVersion{
+			Id:      secret.SecretKey,
+			Version: fmt.Sprint(secret.Version),
+		})
 		files = append(files, &v1alpha1.File{
-			Path:     object.Name,
+			Path:     secret.SecretKey,
 			Mode:     mode,
-			Contents: []byte(base64.StdEncoding.EncodeToString([]byte(object.Name))),
+			Contents: []byte(secret.SecretValue),
 		})
 	}
+	mountResponse.ObjectVersion = objectVersions
 	mountResponse.Files = files
 
 	return mountResponse, nil
