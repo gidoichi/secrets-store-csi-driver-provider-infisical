@@ -24,7 +24,7 @@ func main() {
 	kubeClient := kubernetes.NewForConfigOrDie(kubeConfig)
 	auth := auth.NewAuth(kubeClient)
 	infisicalClientFactory := provider.NewInfisicalClientFactory()
-	provider := server.NewCSIProviderServer(socketPath, auth, infisicalClientFactory) // TODO: pass kubeClient
+	provider := server.NewCSIProviderServer(socketPath, auth, infisicalClientFactory)
 	defer provider.Stop()
 
 	if err := provider.Start(); err != nil {
