@@ -10,6 +10,7 @@ import (
 
 	"github.com/gidoichi/secrets-store-csi-driver-provider-infisical/auth"
 	"github.com/gidoichi/secrets-store-csi-driver-provider-infisical/provider"
+	"github.com/go-playground/validator/v10"
 	infisical "github.com/infisical/go-sdk"
 	"google.golang.org/grpc"
 	"gopkg.in/yaml.v2"
@@ -29,6 +30,7 @@ type CSIProviderServer struct {
 	socketPath             string
 	auth                   auth.Auth
 	infisicalClientFactory provider.InfisicalClientFactory
+	validator              *validator.Validate
 }
 
 var _ v1alpha1.CSIDriverProviderServer = &CSIProviderServer{}
@@ -41,6 +43,7 @@ func NewCSIProviderServer(socketPath string, auth auth.Auth, infisicalClientFact
 		socketPath:             socketPath,
 		auth:                   auth,
 		infisicalClientFactory: infisicalClientFactory,
+		validator:              validator.New(validator.WithRequiredStructEnabled()),
 	}
 	v1alpha1.RegisterCSIDriverProviderServer(server, s)
 	return s
@@ -66,11 +69,11 @@ func (m *CSIProviderServer) Stop() {
 
 // TODO: specify these fields are required or optional
 type attributes struct {
-	Project             string `json:"projectSlug"`
-	Env                 string `json:"envSlug"`
+	Project             string `json:"projectSlug" validate:"required"`
+	Env                 string `json:"envSlug" validate:"required"`
 	Path                string `json:"secretsPath"`
-	AuthSecretName      string `json:"authSecretName"`
-	AuthSecretNamespace string `json:"authSecretNamespace"`
+	AuthSecretName      string `json:"authSecretName" validate:"required"`
+	AuthSecretNamespace string `json:"authSecretNamespace" validate:"required"`
 	Objects             string `json:"objects"`
 }
 
@@ -101,12 +104,22 @@ func (s *CSIProviderServer) Mount(ctx context.Context, req *v1alpha1.MountReques
 		mountResponse.Error.Code = ErrorInvalidSecretProviderClass
 		return mountResponse, fmt.Errorf("failed to unmarshal parameters, error: %w", err)
 	}
+	if err := s.validator.Struct(attrib); err != nil {
+		mountResponse.Error.Code = ErrorInvalidSecretProviderClass
+		return mountResponse, fmt.Errorf("failed to validate parameters, error: %w", err)
+	}
 	if err := json.Unmarshal([]byte(req.GetSecrets()), &secret); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal secrets, error: %w", err)
 	}
 	if err := json.Unmarshal([]byte(req.GetPermission()), &filePermission); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal file permission, error: %w", err)
 	}
+
+	// objects, err := attrib.ParseObjects()
+	// if err != nil {
+	// 	mountResponse.Error.Code = ErrorInvalidSecretProviderClass
+	// 	return mountResponse, fmt.Errorf("failed to get objects, error: %w", err)
+	// }
 
 	kubeSecret := types.NamespacedName{
 		Namespace: attrib.AuthSecretNamespace,
@@ -119,19 +132,37 @@ func (s *CSIProviderServer) Mount(ctx context.Context, req *v1alpha1.MountReques
 	}
 
 	infisicalClient := s.infisicalClientFactory.NewClient(infisical.Config{})
-	if _, err := infisicalClient.Auth().UniversalAuthLogin(credentials.ID, credentials.Secret); err != nil {
+	if _, err := infisicalClient.UniversalAuthLogin(credentials.ID, credentials.Secret); err != nil {
 		mountResponse.Error.Code = ErrorUnauthorized
 		return mountResponse, fmt.Errorf("failed to login infisical, error: %w", err)
 	}
-	secrets, err := infisicalClient.Secrets().List(infisical.ListSecretsOptions{
+	secrets, err := infisicalClient.ListSecrets(infisical.ListSecretsOptions{
 		ProjectSlug:            attrib.Project,
 		Environment:            attrib.Env,
 		SecretPath:             attrib.Path,
 		ExpandSecretReferences: true,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to list secrets, error: %w", err)
+		mountResponse.Error.Code = ErrorBadRequest
+		return mountResponse, fmt.Errorf("failed to list secrets, error: %w", err)
 	}
+
+	// var objectVersions []*v1alpha1.ObjectVersion
+	// toIndex := func(objects []object) map[string]int {
+	// 	index := make(map[string]int)
+	// 	for i, object := range objects {
+	// 		index[object.Name] = i
+	// 	}
+	// 	return index
+	// }(objects)
+	// for _, secret := range secrets {
+	// 	if index, ok := toIndex[secret.SecretKey]; ok {
+	// 		objectVersions = append(objectVersions, &v1alpha1.ObjectVersion{
+	// 			Id:      objects[index].Name,
+	// 			Version: fmt.Sprint(secret.Version),
+	// 		})
+	// 	}
+	// }
 
 	var objectVersions []*v1alpha1.ObjectVersion
 	var files []*v1alpha1.File
