@@ -7,6 +7,7 @@ require (
 	github.com/infisical/go-sdk v0.3.3
 	go.uber.org/mock v0.4.0
 	go.uber.org/thriftrw v1.32.0
+	golang.org/x/mod v0.17.0
 	google.golang.org/grpc v1.64.1
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/apimachinery v0.26.4

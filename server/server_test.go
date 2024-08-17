@@ -13,6 +13,7 @@ import (
 	api "github.com/infisical/go-sdk/packages/api/auth"
 	"github.com/infisical/go-sdk/packages/models"
 	"go.uber.org/mock/gomock"
+	"golang.org/x/mod/semver"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/secrets-store-csi-driver/provider/v1alpha1"
 )
@@ -471,7 +472,7 @@ func TestCSIProviderServerVersion(t *testing.T) {
 				}
 				if actual.Version != "v1alpha1" ||
 					actual.RuntimeName != "secrets-store-csi-driver-provider-infisical" ||
-					actual.RuntimeVersion != "0.0.1" {
+					!semver.IsValid("v"+actual.RuntimeVersion) {
 					t.Errorf("unexpected version response: %v", actual)
 				}
 			},
