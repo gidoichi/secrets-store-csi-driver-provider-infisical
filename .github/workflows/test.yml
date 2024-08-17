@@ -42,4 +42,4 @@ jobs:
         with:
           cmd: |
             file="charts/secrets-store-csi-driver-provider-infisical/Chart.yaml"
-            diff <(yq --prettyPrint '.appVersion = strenv(RUNTIME_VERSION)' "$file") <(yq --prettyPrint "$file")
+            diff <(yq --prettyPrint '.appVersion = strenv(PROVIDER_VERSION)' "$file") <(yq --prettyPrint "$file") >&2
