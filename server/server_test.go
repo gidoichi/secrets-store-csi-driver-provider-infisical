@@ -171,10 +171,7 @@ func TestCSIProviderServerMounts(t *testing.T) {
 				if actual.Error != nil && actual.Error.Code != "" {
 					t.Errorf("unexpected error: %v", actual.Error)
 				}
-				if actual.ObjectVersion == nil || len(actual.ObjectVersion) != 0 {
-					t.Errorf("unexpected object versions: %v", actual.ObjectVersion)
-				}
-				if actual.Files == nil || len(actual.Files) != 0 {
+				if len(actual.Files) != 0 {
 					t.Errorf("unexpected files: %v", actual.Files)
 				}
 			},

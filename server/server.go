@@ -73,9 +73,7 @@ func (m *CSIProviderServer) Stop() {
 // Mount implements provider csi-provider method
 func (s *CSIProviderServer) Mount(ctx context.Context, req *v1alpha1.MountRequest) (*v1alpha1.MountResponse, error) {
 	mountResponse := &v1alpha1.MountResponse{
-		ObjectVersion: []*v1alpha1.ObjectVersion{},
-		Files:         []*v1alpha1.File{},
-		Error:         &v1alpha1.Error{},
+		Error: &v1alpha1.Error{},
 	}
 
 	slog.Info("mount", "request", req)
