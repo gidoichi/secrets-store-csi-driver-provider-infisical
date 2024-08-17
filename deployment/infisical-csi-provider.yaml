@@ -7,7 +7,7 @@ metadata:
   labels:
     app.kubernetes.io/name: secrets-store-csi-driver-provider-infisical
     app.kubernetes.io/instance: secrets-store-csi-driver-provider-infisical
-    app.kubernetes.io/version: "0.1.0"
+    app.kubernetes.io/version: "0.1.1"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -16,7 +16,7 @@ metadata:
   labels:
     app.kubernetes.io/name: secrets-store-csi-driver-provider-infisical
     app.kubernetes.io/instance: secrets-store-csi-driver-provider-infisical
-    app.kubernetes.io/version: "0.1.0"
+    app.kubernetes.io/version: "0.1.1"
 rules:
 - apiGroups: [""]
   resources: ["secrets"]
@@ -29,7 +29,7 @@ metadata:
   labels:
     app.kubernetes.io/name: secrets-store-csi-driver-provider-infisical
     app.kubernetes.io/instance: secrets-store-csi-driver-provider-infisical
-    app.kubernetes.io/version: "0.1.0"
+    app.kubernetes.io/version: "0.1.1"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -47,7 +47,7 @@ metadata:
   labels:
     app.kubernetes.io/name: secrets-store-csi-driver-provider-infisical
     app.kubernetes.io/instance: secrets-store-csi-driver-provider-infisical
-    app.kubernetes.io/version: "0.1.0"
+    app.kubernetes.io/version: "0.1.1"
 spec:
   selector:
     matchLabels:
@@ -58,14 +58,14 @@ spec:
       labels:
         app.kubernetes.io/name: secrets-store-csi-driver-provider-infisical
         app.kubernetes.io/instance: secrets-store-csi-driver-provider-infisical
-        app.kubernetes.io/version: "0.1.0"
+        app.kubernetes.io/version: "0.1.1"
     spec:
       serviceAccountName: secrets-store-csi-driver-provider-infisical
       securityContext:
         {}
       containers:
         - name: secrets-store-csi-driver-provider-infisical
-          image: "gidoichi/secrets-store-csi-driver-provider-infisical:v0.1.0"
+          image: "gidoichi/secrets-store-csi-driver-provider-infisical:v0.1.1"
           imagePullPolicy: IfNotPresent
           resources:
             {}
