@@ -9,11 +9,11 @@ import (
 	"os"
 
 	"github.com/gidoichi/secrets-store-csi-driver-provider-infisical/auth"
+	"github.com/gidoichi/secrets-store-csi-driver-provider-infisical/config"
 	"github.com/gidoichi/secrets-store-csi-driver-provider-infisical/provider"
 	"github.com/go-playground/validator/v10"
 	infisical "github.com/infisical/go-sdk"
 	"google.golang.org/grpc"
-	"gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/secrets-store-csi-driver/provider/v1alpha1"
 )
@@ -67,44 +67,23 @@ func (m *CSIProviderServer) Stop() {
 	m.grpcServer.GracefulStop()
 }
 
-// TODO: specify these fields are required or optional
-type attributes struct {
-	Project             string `json:"projectSlug" validate:"required"`
-	Env                 string `json:"envSlug" validate:"required"`
-	Path                string `json:"secretsPath"`
-	AuthSecretName      string `json:"authSecretName" validate:"required"`
-	AuthSecretNamespace string `json:"authSecretNamespace" validate:"required"`
-	Objects             string `json:"objects"`
-}
-
-type object struct {
-	Name string `yaml:"objectName"`
-}
-
-func (a *attributes) ParseObjects() ([]object, error) {
-	var objects []object
-	if err := yaml.Unmarshal([]byte(a.Objects), &objects); err != nil {
-		return nil, err
-	}
-	return objects, nil
-}
-
 // Mount implements provider csi-provider method
 func (s *CSIProviderServer) Mount(ctx context.Context, req *v1alpha1.MountRequest) (*v1alpha1.MountResponse, error) {
 	mountResponse := &v1alpha1.MountResponse{
 		Error: &v1alpha1.Error{},
 	}
-	var attrib attributes
-	var secret map[string]string
-	var filePermission os.FileMode
 
 	slog.Info("mount", "request", req)
 
-	if err := json.Unmarshal([]byte(req.GetAttributes()), &attrib); err != nil {
+	// parse request
+	mountConfig := config.NewMountConfig(*s.validator)
+	var secret map[string]string
+	var filePermission os.FileMode
+	if err := json.Unmarshal([]byte(req.GetAttributes()), &mountConfig); err != nil {
 		mountResponse.Error.Code = ErrorInvalidSecretProviderClass
 		return mountResponse, fmt.Errorf("failed to unmarshal parameters, error: %w", err)
 	}
-	if err := s.validator.Struct(attrib); err != nil {
+	if err := mountConfig.Validate(); err != nil {
 		mountResponse.Error.Code = ErrorInvalidSecretProviderClass
 		return mountResponse, fmt.Errorf("failed to validate parameters, error: %w", err)
 	}
@@ -114,16 +93,19 @@ func (s *CSIProviderServer) Mount(ctx context.Context, req *v1alpha1.MountReques
 	if err := json.Unmarshal([]byte(req.GetPermission()), &filePermission); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal file permission, error: %w", err)
 	}
+	objects, err := mountConfig.Objects()
+	if err != nil {
+		mountResponse.Error.Code = ErrorInvalidSecretProviderClass
+		return mountResponse, fmt.Errorf("failed to get objects, error: %w", err)
+	}
+	if mountConfig.RawObjects != nil && len(objects) == 0 {
+		return mountResponse, nil
+	}
 
-	// objects, err := attrib.ParseObjects()
-	// if err != nil {
-	// 	mountResponse.Error.Code = ErrorInvalidSecretProviderClass
-	// 	return mountResponse, fmt.Errorf("failed to get objects, error: %w", err)
-	// }
-
+	// get credentials
 	kubeSecret := types.NamespacedName{
-		Namespace: attrib.AuthSecretNamespace,
-		Name:      attrib.AuthSecretName,
+		Namespace: mountConfig.AuthSecretNamespace,
+		Name:      mountConfig.AuthSecretName,
 	}
 	credentials, err := s.auth.TokenFromKubeSecret(ctx, kubeSecret)
 	if err != nil {
@@ -131,15 +113,16 @@ func (s *CSIProviderServer) Mount(ctx context.Context, req *v1alpha1.MountReques
 		return mountResponse, fmt.Errorf("failed to get credentials, error: %w", err)
 	}
 
+	// get secrets
 	infisicalClient := s.infisicalClientFactory.NewClient(infisical.Config{})
 	if _, err := infisicalClient.UniversalAuthLogin(credentials.ID, credentials.Secret); err != nil {
 		mountResponse.Error.Code = ErrorUnauthorized
 		return mountResponse, fmt.Errorf("failed to login infisical, error: %w", err)
 	}
 	secrets, err := infisicalClient.ListSecrets(infisical.ListSecretsOptions{
-		ProjectSlug:            attrib.Project,
-		Environment:            attrib.Env,
-		SecretPath:             attrib.Path,
+		ProjectSlug:            mountConfig.Project,
+		Environment:            mountConfig.Env,
+		SecretPath:             mountConfig.Path,
 		ExpandSecretReferences: true,
 	})
 	if err != nil {
@@ -147,36 +130,43 @@ func (s *CSIProviderServer) Mount(ctx context.Context, req *v1alpha1.MountReques
 		return mountResponse, fmt.Errorf("failed to list secrets, error: %w", err)
 	}
 
-	// var objectVersions []*v1alpha1.ObjectVersion
-	// toIndex := func(objects []object) map[string]int {
-	// 	index := make(map[string]int)
-	// 	for i, object := range objects {
-	// 		index[object.Name] = i
-	// 	}
-	// 	return index
-	// }(objects)
-	// for _, secret := range secrets {
-	// 	if index, ok := toIndex[secret.SecretKey]; ok {
-	// 		objectVersions = append(objectVersions, &v1alpha1.ObjectVersion{
-	// 			Id:      objects[index].Name,
-	// 			Version: fmt.Sprint(secret.Version),
-	// 		})
-	// 	}
-	// }
-
+	// store secrets
 	var objectVersions []*v1alpha1.ObjectVersion
 	var files []*v1alpha1.File
-	mode := int32(filePermission)
-	for _, secret := range secrets {
-		objectVersions = append(objectVersions, &v1alpha1.ObjectVersion{
-			Id:      secret.SecretKey,
-			Version: fmt.Sprint(secret.Version),
-		})
-		files = append(files, &v1alpha1.File{
-			Path:     secret.SecretKey,
-			Mode:     mode,
-			Contents: []byte(secret.SecretValue),
-		})
+	if mountConfig.RawObjects == nil {
+		mode := int32(filePermission)
+		for _, secret := range secrets {
+			objectVersions = append(objectVersions, &v1alpha1.ObjectVersion{
+				Id:      secret.SecretKey,
+				Version: fmt.Sprint(secret.Version),
+			})
+			files = append(files, &v1alpha1.File{
+				Path:     secret.SecretKey,
+				Mode:     mode,
+				Contents: []byte(secret.SecretValue),
+			})
+		}
+	} else {
+		secretsMap := map[string]infisical.Secret{}
+		for _, secret := range secrets {
+			secretsMap[secret.SecretKey] = secret
+		}
+		for _, object := range objects {
+			secret, ok := secretsMap[object.Name]
+			if !ok {
+				mountResponse.Error.Code = ErrorBadRequest
+				return mountResponse, fmt.Errorf("object %s not found in secrets", object.Name)
+			}
+			objectVersions = append(objectVersions, &v1alpha1.ObjectVersion{
+				Id:      object.Name,
+				Version: fmt.Sprint(secret.Version),
+			})
+			files = append(files, &v1alpha1.File{
+				Path:     object.Name,
+				Mode:     int32(filePermission),
+				Contents: []byte(secret.SecretValue),
+			})
+		}
 	}
 	mountResponse.ObjectVersion = objectVersions
 	mountResponse.Files = files
@@ -189,6 +179,6 @@ func (m *CSIProviderServer) Version(ctx context.Context, req *v1alpha1.VersionRe
 	return &v1alpha1.VersionResponse{
 		Version:        "v1alpha1",
 		RuntimeName:    "secrets-store-csi-driver-provider-infisical",
-		RuntimeVersion: "0.0.1",
+		RuntimeVersion: "0.1.0",
 	}, nil
 }
