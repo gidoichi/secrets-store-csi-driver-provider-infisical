@@ -17,6 +17,7 @@ type MountConfig struct {
 	CSIPodUID                string  `json:"csi.storage.k8s.io/pod.uid"`
 	CSIPodServiceAccountName string  `json:"csi.storage.k8s.io/serviceAccount.name"`
 	CSIEphemeral             string  `json:"csi.storage.k8s.io/ephemeral"`
+	SecretProviderClass      string  `json:"secretProviderClass"`
 	parsedObjects            []object
 	validator                validator.Validate
 }
