@@ -42,7 +42,7 @@ jobs:
         with:
           cmd: |
             file="charts/secrets-store-csi-driver-provider-infisical/Chart.yaml"
-            diff <(yq --prettyPrint '.appVersion = strenv(PROVIDER_VERSION)' "$file") <(yq --prettyPrint "$file") >&2
+            diff <(yq --prettyPrint "$file") <(yq --prettyPrint '.appVersion = strenv(PROVIDER_VERSION)' "$file") >&2
 
   validate-deployment:
     runs-on: ubuntu-latest
@@ -51,6 +51,8 @@ jobs:
       - uses: azure/setup-helm@v4.2.0
       - name: Update kuberenetes manifest
         run: |
-          helm template --skip-tests secrets-store-csi-driver-provider-infisical charts/secrets-store-csi-driver-provider-infisical |
-              grep -v -e '^ *helm\.sh/chart: ' -e '^ *app.kubernetes.io/managed-by: Helm$' -e '^# Source: ' \
-              > deployment/infisical-csi-provider.yaml
+          diff \
+              deployment/infisical-csi-provider.yaml \
+              <(helm template --skip-tests secrets-store-csi-driver-provider-infisical charts/secrets-store-csi-driver-provider-infisical |
+                  grep -v -e '^ *helm\.sh/chart: ' -e '^ *app.kubernetes.io/managed-by: Helm$' -e '^# Source: ') \
+              >&2
