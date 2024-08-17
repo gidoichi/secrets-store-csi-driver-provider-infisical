@@ -60,3 +60,17 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Create the name of the cluster role to use
+*/}}
+{{- define "secrets-store-csi-driver-provider-infisical.clusterRoleName" -}}
+{{- default (include "secrets-store-csi-driver-provider-infisical.fullname" .) .Values.clusterRole.name }}
+{{- end }}
+
+{{/*
+Create the name of the cluster role binding to use
+*/}}
+{{- define "secrets-store-csi-driver-provider-infisical.clusterRoleBindingName" -}}
+{{- default (include "secrets-store-csi-driver-provider-infisical.fullname" .) .Values.clusterRoleBinding.name }}
+{{- end }}
