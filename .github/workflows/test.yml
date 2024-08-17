@@ -30,7 +30,7 @@ jobs:
           set -x
           printf 'runtime=%s' "$(go run main.go --version)" >> "$GITHUB_OUTPUT"
 
-  helm-chart:
+  validate-helm-chart:
     runs-on: ubuntu-latest
     needs: go-test
     steps:
