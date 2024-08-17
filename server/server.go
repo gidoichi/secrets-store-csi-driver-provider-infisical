@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net"
 	"os"
+	"strings"
 
 	"github.com/gidoichi/secrets-store-csi-driver-provider-infisical/auth"
 	"github.com/gidoichi/secrets-store-csi-driver-provider-infisical/config"
@@ -25,6 +26,7 @@ var (
 )
 
 type CSIProviderServer struct {
+	version                string
 	grpcServer             *grpc.Server
 	listener               net.Listener
 	socketPath             string
@@ -36,9 +38,10 @@ type CSIProviderServer struct {
 var _ v1alpha1.CSIDriverProviderServer = &CSIProviderServer{}
 
 // NewCSIProviderServer returns a mock csi-provider grpc server
-func NewCSIProviderServer(socketPath string, auth auth.Auth, infisicalClientFactory provider.InfisicalClientFactory) *CSIProviderServer {
+func NewCSIProviderServer(version, socketPath string, auth auth.Auth, infisicalClientFactory provider.InfisicalClientFactory) *CSIProviderServer {
 	server := grpc.NewServer()
 	s := &CSIProviderServer{
+		version:                version,
 		grpcServer:             server,
 		socketPath:             socketPath,
 		auth:                   auth,
@@ -79,7 +82,9 @@ func (s *CSIProviderServer) Mount(ctx context.Context, req *v1alpha1.MountReques
 	mountConfig := config.NewMountConfig(*s.validator)
 	var secret map[string]string
 	var filePermission os.FileMode
-	if err := json.Unmarshal([]byte(req.GetAttributes()), &mountConfig); err != nil {
+	attributesDecoder := json.NewDecoder(strings.NewReader(req.GetAttributes()))
+	attributesDecoder.DisallowUnknownFields()
+	if err := attributesDecoder.Decode(&mountConfig); err != nil {
 		mountResponse.Error.Code = ErrorInvalidSecretProviderClass
 		return mountResponse, fmt.Errorf("failed to unmarshal parameters, error: %w", err)
 	}
@@ -179,6 +184,6 @@ func (m *CSIProviderServer) Version(ctx context.Context, req *v1alpha1.VersionRe
 	return &v1alpha1.VersionResponse{
 		Version:        "v1alpha1",
 		RuntimeName:    "secrets-store-csi-driver-provider-infisical",
-		RuntimeVersion: "0.1.0",
+		RuntimeVersion: m.version,
 	}, nil
 }

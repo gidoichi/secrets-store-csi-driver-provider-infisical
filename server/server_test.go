@@ -19,7 +19,8 @@ import (
 )
 
 const (
-	socketPath = "/tmp/test.sock"
+	runtimeVersion = "0.0.1"
+	socketPath     = "/tmp/test.sock"
 )
 
 var (
@@ -69,7 +70,7 @@ func TestCSIProviderServerMounts(t *testing.T) {
 				}, nil)
 
 				// When
-				providerServer := server.NewCSIProviderServer(socketPath, mockAuth, mockInfisicalClientFactory)
+				providerServer := server.NewCSIProviderServer(runtimeVersion, socketPath, mockAuth, mockInfisicalClientFactory)
 				actual, err := providerServer.Mount(ctx, idealMountRequest)
 
 				// Then
@@ -137,7 +138,7 @@ func TestCSIProviderServerMounts(t *testing.T) {
 				}
 
 				// When
-				providerServer := server.NewCSIProviderServer(socketPath, mockAuth, mockInfisicalClientFactory)
+				providerServer := server.NewCSIProviderServer(runtimeVersion, socketPath, mockAuth, mockInfisicalClientFactory)
 				actual, err := providerServer.Mount(ctx, mountRequest)
 
 				// Then
@@ -160,7 +161,7 @@ func TestCSIProviderServerMounts(t *testing.T) {
 				}
 
 				// When
-				providerServer := server.NewCSIProviderServer(socketPath, mockAuth, mockInfisicalClientFactory)
+				providerServer := server.NewCSIProviderServer(runtimeVersion, socketPath, mockAuth, mockInfisicalClientFactory)
 				actual, err := providerServer.Mount(ctx, mountRequest)
 
 				// Then
@@ -206,7 +207,7 @@ func TestCSIProviderServerMounts(t *testing.T) {
 				}
 
 				// When
-				providerServer := server.NewCSIProviderServer(socketPath, mockAuth, mockInfisicalClientFactory)
+				providerServer := server.NewCSIProviderServer(runtimeVersion, socketPath, mockAuth, mockInfisicalClientFactory)
 				actual, err := providerServer.Mount(ctx, mountRequest)
 
 				// Then
@@ -252,7 +253,7 @@ func TestCSIProviderServerMounts(t *testing.T) {
 				}
 
 				// When
-				providerServer := server.NewCSIProviderServer(socketPath, mockAuth, mockInfisicalClientFactory)
+				providerServer := server.NewCSIProviderServer(runtimeVersion, socketPath, mockAuth, mockInfisicalClientFactory)
 				actual, err := providerServer.Mount(ctx, mountRequest)
 
 				// Then
@@ -270,6 +271,29 @@ func TestCSIProviderServerMounts(t *testing.T) {
 					actual.Files[0].Mode != 420 ||
 					string(actual.Files[0].Contents) != "admin" {
 					t.Errorf("unexpected files: %v", actual.Files)
+				}
+			},
+		},
+		{
+			"FailedWithUnknownAttributes",
+			func(t *testing.T) {
+				// Given
+				mountRequest := &v1alpha1.MountRequest{
+					Attributes: `{"projectSlug":"test-project","envSlug":"dev","authSecretName":"test-infisical-credentials","authSecretNamespace":"test-namepace", "unknown": "unknown"}`,
+					Secrets:    "{}",
+					Permission: "420",
+				}
+
+				// When
+				providerServer := server.NewCSIProviderServer(runtimeVersion, socketPath, mockAuth, mockInfisicalClientFactory)
+				actual, err := providerServer.Mount(ctx, mountRequest)
+
+				// Then
+				if err == nil {
+					t.Errorf("expected error, but got nil")
+				}
+				if actual.Error == nil || actual.Error.Code != server.ErrorInvalidSecretProviderClass {
+					t.Errorf("unexpected error: %v", actual.Error)
 				}
 			},
 		},
@@ -304,7 +328,7 @@ func TestCSIProviderServerMounts(t *testing.T) {
 				}
 
 				// When
-				providerServer := server.NewCSIProviderServer(socketPath, mockAuth, mockInfisicalClientFactory)
+				providerServer := server.NewCSIProviderServer(runtimeVersion, socketPath, mockAuth, mockInfisicalClientFactory)
 				actual, err := providerServer.Mount(ctx, mountRequest)
 
 				// Then
@@ -323,7 +347,7 @@ func TestCSIProviderServerMounts(t *testing.T) {
 				idealMountRequest.Attributes = "{}"
 
 				// When
-				providerServer := server.NewCSIProviderServer(socketPath, mockAuth, mockInfisicalClientFactory)
+				providerServer := server.NewCSIProviderServer(runtimeVersion, socketPath, mockAuth, mockInfisicalClientFactory)
 				actual, err := providerServer.Mount(context.Background(), idealMountRequest)
 
 				// Then
@@ -342,7 +366,7 @@ func TestCSIProviderServerMounts(t *testing.T) {
 				mockAuth.EXPECT().TokenFromKubeSecret(ctx, idealKubeSecret).Return(nil, errors.New("kube secret not found"))
 
 				// When
-				providerServer := server.NewCSIProviderServer(socketPath, mockAuth, mockInfisicalClientFactory)
+				providerServer := server.NewCSIProviderServer(runtimeVersion, socketPath, mockAuth, mockInfisicalClientFactory)
 				actual, err := providerServer.Mount(ctx, idealMountRequest)
 
 				// Then
@@ -363,7 +387,7 @@ func TestCSIProviderServerMounts(t *testing.T) {
 				mockInfisicalClient.EXPECT().UniversalAuthLogin(idealCredentials.ID, idealCredentials.Secret).Return(api.MachineIdentityAuthLoginResponse{}, errors.New("failed to login"))
 
 				// When
-				providerServer := server.NewCSIProviderServer(socketPath, mockAuth, mockInfisicalClientFactory)
+				providerServer := server.NewCSIProviderServer(runtimeVersion, socketPath, mockAuth, mockInfisicalClientFactory)
 				actual, err := providerServer.Mount(ctx, idealMountRequest)
 
 				// Then
@@ -390,7 +414,7 @@ func TestCSIProviderServerMounts(t *testing.T) {
 				}).Return(nil, errors.New("failed to list secrets"))
 
 				// When
-				providerServer := server.NewCSIProviderServer(socketPath, mockAuth, mockInfisicalClientFactory)
+				providerServer := server.NewCSIProviderServer(runtimeVersion, socketPath, mockAuth, mockInfisicalClientFactory)
 				actual, err := providerServer.Mount(ctx, idealMountRequest)
 
 				// Then
@@ -463,7 +487,7 @@ func TestCSIProviderServerVersion(t *testing.T) {
 				// Given
 
 				// When
-				providerServer := server.NewCSIProviderServer(socketPath, mockAuth, mockInfisicalClientFactory)
+				providerServer := server.NewCSIProviderServer(runtimeVersion, socketPath, mockAuth, mockInfisicalClientFactory)
 				actual, err := providerServer.Version(ctx, idealVersionRequest)
 
 				// Then
