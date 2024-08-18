@@ -2,6 +2,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: {{ include "secrets-store-csi-driver-provider-infisical.clusterRoleName" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "secrets-store-csi-driver-provider-infisical.labels" . | nindent 4 }}
   {{- with .Values.serviceAccount.annotations }}

@@ -13,6 +13,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: secrets-store-csi-driver-provider-infisical
+  namespace: kube-system
   labels:
     app.kubernetes.io/name: secrets-store-csi-driver-provider-infisical
     app.kubernetes.io/instance: secrets-store-csi-driver-provider-infisical
@@ -26,6 +27,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: secrets-store-csi-driver-provider-infisical
+  namespace: kube-system
   labels:
     app.kubernetes.io/name: secrets-store-csi-driver-provider-infisical
     app.kubernetes.io/instance: secrets-store-csi-driver-provider-infisical
