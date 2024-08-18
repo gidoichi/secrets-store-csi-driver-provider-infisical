@@ -39,7 +39,6 @@ spec:
   parameters:
     projectSlug: example-project
     envSlug: dev
-    secretsPath: / # optional,default="/"
     authSecretName: dummy
     authSecretNamespace: dummy
     objects: ""
