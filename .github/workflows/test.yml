@@ -30,6 +30,20 @@ jobs:
           set -x
           printf 'runtime=%s' "$(go run main.go --version)" >> "$GITHUB_OUTPUT"
 
+  terraform-plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+      - run: terraform init
+        working-directory: github
+      - run: terraform plan -detailed-exitcode -refresh=false
+        working-directory: github
+        env:
+          TF_VAR_GITHUB_TOKEN: ""
+
   validate-helm-chart:
     runs-on: ubuntu-latest
     needs: go-test

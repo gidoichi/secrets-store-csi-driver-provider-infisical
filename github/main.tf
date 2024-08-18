@@ -35,6 +35,8 @@ resource "github_branch_protection" "default" {
     contexts = [
       "build-container",
       "go-test",
+      "terraform-plan",
+      "validate-deployment",
       "validate-helm-chart",
     ]
   }
