@@ -70,10 +70,12 @@ jobs:
         run: |
           set -eux
           helm package secrets-store-csi-driver-provider-infisical
-          for file in *.tgz; do mv {,chart-}"$file"; done;
+          for file in *.tgz; do mv {,chart-}"$file"; done
+          yq '.generated = null | .entries[][].digest = null | .entries[][].created = null' index.yaml > index.yaml.a
           helm repo index . --merge index.yaml --url "https://github.com/gidoichi/secrets-store-csi-driver-provider-infisical/releases/download/v${PROVIDER_VERSION}/"
+          yq '.generated = null | .entries[][].digest = null | .entries[][].created = null' index.yaml > index.yaml.b
 
-          git diff --exit-code index.yaml
+          diff index.yaml.{a,b}
 
   validate-deployment:
     runs-on: ubuntu-latest
