@@ -1,9 +1,5 @@
 module github.com/gidoichi/secrets-store-csi-driver-provider-infisical
 
-replace github.com/Infisical/infisical-merge => github.com/Infisical/infisical/cli v0.0.0-20240914135201-a6f4a95821d2
-
-replace github.com/zalando/go-keyring => github.com/Infisical/go-keyring v1.0.2
-
 go 1.22.5
 
 require (
@@ -94,3 +90,7 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
+
+replace github.com/Infisical/infisical-merge => github.com/Infisical/infisical/cli v0.0.0-20240914135201-a6f4a95821d2
+
+replace github.com/zalando/go-keyring => github.com/Infisical/go-keyring v1.0.2

@@ -8,6 +8,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gidoichi/secrets-store-csi-driver-provider-infisical/admission-webhook/pkg/webhook"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
@@ -16,9 +17,6 @@ import (
 	kwhlogrus "github.com/slok/kubewebhook/v2/pkg/log/logrus"
 	kwhprometheus "github.com/slok/kubewebhook/v2/pkg/metrics/prometheus"
 	kwhwebhook "github.com/slok/kubewebhook/v2/pkg/webhook"
-
-	"github.com/slok/kubewebhook/v2/examples/multiwebhook/pkg/webhook/mutating"
-	"github.com/slok/kubewebhook/v2/examples/multiwebhook/pkg/webhook/validating"
 )
 
 const (
@@ -56,22 +54,22 @@ func (m *Main) Run() error {
 	}
 
 	// Create webhooks
-	mpw, err := mutating.NewPodWebhook(defLabels, m.logger)
+	mutSPCWebhook, err := webhook.NewSecretProviderClassMutatingWebhook(m.logger)
 	if err != nil {
 		return err
 	}
-	mpw = kwhwebhook.NewMeasuredWebhook(metricsRec, mpw)
-	mpwh, err := kwhhttp.HandlerFor(kwhhttp.HandlerConfig{Webhook: mpw, Logger: m.logger})
+	mutSPCWebhook = kwhwebhook.NewMeasuredWebhook(metricsRec, mutSPCWebhook)
+	mutSPCHandler, err := kwhhttp.HandlerFor(kwhhttp.HandlerConfig{Webhook: mutSPCWebhook, Logger: m.logger})
 	if err != nil {
 		return err
 	}
 
-	vdw, err := validating.NewDeploymentWebhook(minReps, maxReps, m.logger)
+	valSPCWebhook, err := webhook.NewSecretProviderClassValidatingWebhook(m.logger)
 	if err != nil {
 		return err
 	}
-	vdw = kwhwebhook.NewMeasuredWebhook(metricsRec, vdw)
-	vdwh, err := kwhhttp.HandlerFor(kwhhttp.HandlerConfig{Webhook: vdw, Logger: m.logger})
+	valSPCWebhook = kwhwebhook.NewMeasuredWebhook(metricsRec, valSPCWebhook)
+	valSPCHandler, err := kwhhttp.HandlerFor(kwhhttp.HandlerConfig{Webhook: valSPCWebhook, Logger: m.logger})
 	if err != nil {
 		return err
 	}
@@ -80,13 +78,11 @@ func (m *Main) Run() error {
 	errC := make(chan error)
 
 	// Serve webhooks.
-	// TODO: Move to it's own service.
 	go func() {
-
 		m.logger.Infof("webhooks listening on %s...", m.flags.ListenAddress)
 		mux := http.NewServeMux()
-		mux.Handle("/webhooks/mutating/pod", mpwh)
-		mux.Handle("/webhooks/validating/deployment", vdwh)
+		mux.Handle("/webhooks/mutating/secretproviderclass", mutSPCHandler)
+		mux.Handle("/webhooks/validating/secretproviderclass", valSPCHandler)
 		errC <- http.ListenAndServeTLS(
 			m.flags.ListenAddress,
 			m.flags.CertFile,

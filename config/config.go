@@ -1,6 +1,9 @@
 package config
 
 import (
+	"reflect"
+	"strings"
+
 	"github.com/go-playground/validator/v10"
 	"gopkg.in/yaml.v2"
 )
@@ -25,6 +28,20 @@ type MountConfig struct {
 type object struct {
 	Name  string `yaml:"objectName" validate:"required"`
 	Alias string `yaml:"objectAlias" validate:"excludes=/"`
+}
+
+func NewValidator() *validator.Validate {
+	validator := validator.New(validator.WithRequiredStructEnabled())
+	validator.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+		// skip if tag key says it should be ignored
+		if name == "-" {
+			return ""
+		}
+		return name
+	})
+
+	return validator
 }
 
 func NewMountConfig(validator validator.Validate) *MountConfig {
