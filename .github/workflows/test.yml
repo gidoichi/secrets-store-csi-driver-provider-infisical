@@ -64,7 +64,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: azure/setup-helm@v4
-      - working-directory: charts
+      - name: Diff charts/index.yaml
+        working-directory: charts
         env:
           PROVIDER_VERSION: ${{ needs.go-test.outputs.version }}
         run: |
