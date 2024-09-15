@@ -2,10 +2,11 @@
 package provider
 
 import (
-	"log/slog"
+	"fmt"
+	"path"
+	"regexp"
+	"strings"
 
-	"github.com/Infisical/infisical-merge/packages/models"
-	"github.com/Infisical/infisical-merge/packages/util"
 	infisical "github.com/infisical/go-sdk"
 )
 
@@ -40,77 +41,142 @@ func NewInfisicalClient(config infisical.Config) InfisicalClient {
 }
 
 func (c *infisicalClient) UniversalAuthLogin(clientID, clientSecret string) (infisical.MachineIdentityCredential, error) {
-	credential, err := c.client.Auth().UniversalAuthLogin(clientID, clientSecret)
-	c.auth = &credential
-	slog.Info("login", "credential", credential)
-
-	return credential, err
+	return c.client.Auth().UniversalAuthLogin(clientID, clientSecret)
 }
 
 func (c *infisicalClient) ListSecrets(options infisical.ListSecretsOptions) ([]infisical.Secret, error) {
-	token := &models.TokenDetails{
-		Type:  util.UNIVERSAL_AUTH_TOKEN_IDENTIFIER,
-		Token: c.auth.AccessToken,
-	}
-
-	shouldExpandSecrets := options.ExpandSecretReferences
-
-	secretOverriding := false
-
-	request := models.GetAllSecretsParameters{
-		Environment:   options.Environment,
-		WorkspaceId:   options.ProjectID,
-		SecretsPath:   options.SecretPath,
-		IncludeImport: options.IncludeImports,
-		Recursive:     options.Recursive,
-	}
-
-	// This is a copy of the code from the CLI package
-	// https://github.com/Infisical/infisical/blob/a6f4a95821d2dd597a801af7ec873a98d46b5ff8/cli/packages/cmd/secrets.go#L90-L119
-
-	if token != nil && token.Type == util.SERVICE_TOKEN_IDENTIFIER {
-		request.InfisicalToken = token.Token
-	} else if token != nil && token.Type == util.UNIVERSAL_AUTH_TOKEN_IDENTIFIER {
-		request.UniversalAuthAccessToken = token.Token
-	}
-
-	secrets, err := util.GetAllEnvironmentVariables(request, "")
+	secrets, err := c.client.Secrets().List(options)
 	if err != nil {
-		util.HandleError(err)
+		return nil, err
+	}
+	if !options.ExpandSecretReferences {
+		return secrets, nil
 	}
 
-	if secretOverriding {
-		secrets = util.OverrideSecrets(secrets, util.SECRET_TYPE_PERSONAL)
-	} else {
-		secrets = util.OverrideSecrets(secrets, util.SECRET_TYPE_SHARED)
-	}
-
-	if shouldExpandSecrets {
-		authParams := models.ExpandSecretsAuthentication{}
-		if token != nil && token.Type == util.SERVICE_TOKEN_IDENTIFIER {
-			authParams.InfisicalToken = token.Token
-		} else if token != nil && token.Type == util.UNIVERSAL_AUTH_TOKEN_IDENTIFIER {
-			authParams.UniversalAuthAccessToken = token.Token
-		}
-
-		secrets = util.ExpandSecrets(secrets, authParams, "")
-	}
-
-	// Sort the secrets by key so we can create a consistent output
-	secrets = util.SortSecretsByKeys(secrets)
-
-	return c.toSDKSecrets(secrets), nil
+	return c.expandSecrets(secrets, options)
 }
 
-func (c *infisicalClient) toSDKSecrets(secrets []models.SingleEnvironmentVariable) []infisical.Secret {
-	var sdkSecrets []infisical.Secret
-	for _, secret := range secrets {
-		sdkSecrets = append(sdkSecrets, infisical.Secret{
-			SecretKey:   secret.Key,
-			SecretValue: secret.Value,
-			Version:     1, // because version is not available in the response
-		})
+func (c *infisicalClient) GetAllEnvironmentVariables(options infisical.ListSecretsOptions) ([]infisical.Secret, error) {
+	options.ExpandSecretReferences = false
+	return c.ListSecrets(options)
+}
+
+// c.f. https://github.com/Infisical/infisical/blob/a6f4a95821d2dd597a801af7ec873a98d46b5ff8/cli/packages/util/secrets.go#L333
+var secRefRegex = regexp.MustCompile(`\${([^\}]*)}`)
+
+// c.f. https://github.com/Infisical/infisical/blob/a6f4a95821d2dd597a801af7ec873a98d46b5ff8/cli/packages/util/secrets.go#L335
+func (c *infisicalClient) recursivelyExpandSecret(expandedSecs map[string]string, interpolatedSecs map[string]string, crossSecRefFetch func(env string, path []string, key string) (string, error), key string) (string, error) {
+	if v, ok := expandedSecs[key]; ok {
+		return v, nil
 	}
 
-	return sdkSecrets
+	interpolatedVal, ok := interpolatedSecs[key]
+	if !ok {
+		return "", fmt.Errorf("could not find refered secret -  %s", key)
+	}
+
+	refs := secRefRegex.FindAllStringSubmatch(interpolatedVal, -1)
+	for _, val := range refs {
+		// key: "${something}" val: [${something},something]
+		interpolatedExp, interpolationKey := val[0], val[1]
+		ref := strings.Split(interpolationKey, ".")
+
+		// ${KEY1} => [key1]
+		if len(ref) == 1 {
+			val, err := c.recursivelyExpandSecret(expandedSecs, interpolatedSecs, crossSecRefFetch, interpolationKey)
+			if err != nil {
+				return "", err
+			}
+			interpolatedVal = strings.ReplaceAll(interpolatedVal, interpolatedExp, val)
+			continue
+		}
+
+		// cross board reference ${env.folder.key1} => [env folder key1]
+		if len(ref) > 1 {
+			var err error
+			secEnv, tmpSecPath, secKey := ref[0], ref[1:len(ref)-1], ref[len(ref)-1]
+			interpolatedSecs[interpolationKey], err = crossSecRefFetch(secEnv, tmpSecPath, secKey) // get the reference value
+			if err != nil {
+				return "", err
+			}
+			val, err := c.recursivelyExpandSecret(expandedSecs, interpolatedSecs, crossSecRefFetch, interpolationKey)
+			if err != nil {
+				return "", err
+			}
+			interpolatedVal = strings.ReplaceAll(interpolatedVal, interpolatedExp, val)
+		}
+
+	}
+	expandedSecs[key] = interpolatedVal
+	return interpolatedVal, nil
+}
+
+// c.f. https://github.com/Infisical/infisical/blob/a6f4a95821d2dd597a801af7ec873a98d46b5ff8/cli/packages/util/secrets.go#L371
+func getSecretsByKeys(secrets []infisical.Secret) map[string]infisical.Secret {
+	secretMapByName := make(map[string]infisical.Secret, len(secrets))
+
+	for _, secret := range secrets {
+		secretMapByName[secret.SecretKey] = secret
+	}
+
+	return secretMapByName
+}
+
+// c.f. https://github.com/Infisical/infisical/blob/a6f4a95821d2dd597a801af7ec873a98d46b5ff8/cli/packages/util/secrets.go#L381
+func (c *infisicalClient) expandSecrets(secrets []infisical.Secret, options infisical.ListSecretsOptions) ([]infisical.Secret, error) {
+	expandedSecs := make(map[string]string)
+	interpolatedSecs := make(map[string]string)
+	// map[env.secret-path][keyname]Secret
+	crossEnvRefSecs := make(map[string]map[string]infisical.Secret) // a cache to hold all cross board reference secrets
+
+	for _, sec := range secrets {
+		// get all references in a secret
+		refs := secRefRegex.FindAllStringSubmatch(sec.SecretValue, -1)
+		// nil means its a secret without reference
+		if refs == nil {
+			expandedSecs[sec.SecretKey] = sec.SecretValue // atomic secrets without any interpolation
+		} else {
+			interpolatedSecs[sec.SecretKey] = sec.SecretValue
+		}
+	}
+
+	for i, sec := range secrets {
+		// already present pick that up
+		if expandedVal, ok := expandedSecs[sec.SecretKey]; ok {
+			secrets[i].SecretValue = expandedVal
+			continue
+		}
+
+		expandedVal, err := c.recursivelyExpandSecret(expandedSecs, interpolatedSecs, func(env string, secPaths []string, secKey string) (string, error) {
+			secPaths = append([]string{"/"}, secPaths...)
+			secPath := path.Join(secPaths...)
+
+			secPathDot := strings.Join(secPaths, ".")
+			uniqKey := fmt.Sprintf("%s.%s", env, secPathDot)
+
+			if crossRefSec, ok := crossEnvRefSecs[uniqKey]; !ok {
+				// if not in cross reference cache, fetch it from server
+				options := options
+				options.Environment = env
+				options.SecretPath = secPath
+				refSecs, err := c.GetAllEnvironmentVariables(options)
+				if err != nil {
+					return "", fmt.Errorf("Could not fetch secrets in environment: %s secret-path: %s: %w", env, secPath, err)
+				}
+				refSecsByKey := getSecretsByKeys(refSecs)
+				// save it to avoid calling api again for same environment and folder path
+				crossEnvRefSecs[uniqKey] = refSecsByKey
+				return refSecsByKey[secKey].SecretValue, nil
+
+			} else {
+				return crossRefSec[secKey].SecretValue, nil
+			}
+		}, sec.SecretKey)
+		if err != nil {
+			return nil, err
+		}
+
+		secrets[i].SecretValue = expandedVal
+	}
+	return secrets, nil
 }
