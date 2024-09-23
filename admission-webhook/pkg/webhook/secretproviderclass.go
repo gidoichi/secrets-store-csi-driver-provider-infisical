@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
+	"strings"
 
 	"github.com/gidoichi/secrets-store-csi-driver-provider-infisical/config"
 	"github.com/go-playground/validator/v10"
@@ -104,9 +106,22 @@ func (w *secretProviderClassWebhook) Validate(_ context.Context, _ *kwhmodel.Adm
 		}, nil
 	}
 	if err := mountConfig.Validate(); err != nil {
+		path := "spec.parameters"
+		errs, ok := err.(validator.ValidationErrors)
+		if !ok {
+			return &kwhvalidating.ValidatorResult{
+				Valid:   false,
+				Message: fmt.Sprintf("%s: %s", path, err.Error()),
+			}, nil
+		}
+
+		var msgs []string
+		for _, e := range errs {
+			msgs = append(msgs, e.Error())
+		}
 		return &kwhvalidating.ValidatorResult{
 			Valid:   false,
-			Message: err.Error(),
+			Message: fmt.Sprintf("%s: %s", path, strings.Join(msgs, ", ")),
 		}, nil
 	}
 
