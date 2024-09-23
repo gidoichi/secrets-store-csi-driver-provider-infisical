@@ -105,6 +105,7 @@ func (w *secretProviderClassWebhook) Validate(_ context.Context, _ *kwhmodel.Adm
 			Message: err.Error(),
 		}, nil
 	}
+
 	if err := mountConfig.Validate(); err != nil {
 		path := "spec.parameters"
 		errs, ok := err.(validator.ValidationErrors)

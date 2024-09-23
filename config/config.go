@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -76,11 +77,11 @@ func (a *MountConfig) Validate() error {
 
 	objects, err := a.Objects()
 	if err != nil {
-		return err
+		return fmt.Errorf("objects: %w", err)
 	}
-	for _, object := range objects {
+	for i, object := range objects {
 		if err := a.validator.Struct(object); err != nil {
-			return err
+			return fmt.Errorf("objects[%d]: %w", i, err)
 		}
 	}
 
