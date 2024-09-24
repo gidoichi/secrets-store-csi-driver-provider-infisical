@@ -1,7 +1,9 @@
 package config
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"reflect"
 	"strings"
 
@@ -73,7 +75,9 @@ func (a *MountConfig) Objects() ([]object, error) {
 	var objects []object
 	objectDecoder := yaml.NewDecoder(strings.NewReader(*a.RawObjects))
 	objectDecoder.KnownFields(true)
-	if err := objectDecoder.Decode(objects); err != nil {
+	// Decode returns io.EOF error when empty string is passed
+	// c.f. https://github.com/go-yaml/yaml/blob/v3.0.1/yaml.go#L123-L126
+	if err := objectDecoder.Decode(&objects); err != nil && !errors.Is(err, io.EOF) {
 		return nil, err
 	}
 
