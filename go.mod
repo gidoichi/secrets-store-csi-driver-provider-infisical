@@ -9,7 +9,7 @@ require (
 	go.uber.org/thriftrw v1.32.0
 	golang.org/x/mod v0.17.0
 	google.golang.org/grpc v1.64.1
-	gopkg.in/yaml.v2 v2.4.0
+	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/apimachinery v0.26.4
 	k8s.io/client-go v0.26.4
 	sigs.k8s.io/secrets-store-csi-driver v1.4.4
@@ -81,7 +81,7 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240708141625-4ad9e859172b // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 	k8s.io/api v0.26.4 // indirect
 	k8s.io/klog/v2 v2.100.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20221012153701-172d655c2280 // indirect

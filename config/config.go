@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 type MountConfig struct {
@@ -34,7 +34,16 @@ type object struct {
 func NewValidator() *validator.Validate {
 	validator := validator.New(validator.WithRequiredStructEnabled())
 	validator.RegisterTagNameFunc(func(fld reflect.StructField) string {
-		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+		var tag string
+		if v, ok := fld.Tag.Lookup("yaml"); ok {
+			tag = v
+		} else if v, ok := fld.Tag.Lookup("json"); ok {
+			tag = v
+		} else {
+			return fld.Name
+		}
+
+		name := strings.SplitN(tag, ",", 2)[0]
 		// skip if tag key says it should be ignored
 		if name == "-" {
 			return ""
@@ -62,7 +71,9 @@ func (a *MountConfig) Objects() ([]object, error) {
 	}
 
 	var objects []object
-	if err := yaml.Unmarshal([]byte(*a.RawObjects), &objects); err != nil {
+	objectDecoder := yaml.NewDecoder(strings.NewReader(*a.RawObjects))
+	objectDecoder.KnownFields(true)
+	if err := objectDecoder.Decode(objects); err != nil {
 		return nil, err
 	}
 

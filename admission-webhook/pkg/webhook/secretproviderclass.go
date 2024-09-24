@@ -83,50 +83,56 @@ func (w *secretProviderClassWebhook) Validate(_ context.Context, _ *kwhmodel.Adm
 	spc, ok := obj.(*secretstorecsidriverv1.SecretProviderClass)
 	if !ok {
 		// If not a secretproviderclass just continue the validation chain(if there is one) and don't do nothing.
-		return &kwhvalidating.ValidatorResult{Valid: true}, nil
+		return w.validateSkip()
 	}
 	if spc.Spec.Provider != InfisicalSecretProviderName {
-		return &kwhvalidating.ValidatorResult{Valid: true}, nil
+		return w.validateSkip()
 	}
+
+	path := "spec.parameters"
 
 	mountConfig := config.NewMountConfig(*w.validator)
 	attributes, err := json.Marshal(spc.Spec.Parameters)
 	if err != nil {
-		return &kwhvalidating.ValidatorResult{
-			Valid:   false,
-			Message: err.Error(),
-		}, nil
+		return w.validateFailed(path, err.Error())
 	}
 	attributesDecoder := json.NewDecoder(bytes.NewReader(attributes))
 	attributesDecoder.DisallowUnknownFields()
 	if err := attributesDecoder.Decode(mountConfig); err != nil {
-		return &kwhvalidating.ValidatorResult{
-			Valid:   false,
-			Message: err.Error(),
-		}, nil
+		return w.validateFailed(path, err.Error())
 	}
 
 	if err := mountConfig.Validate(); err != nil {
-		path := "spec.parameters"
 		errs, ok := err.(validator.ValidationErrors)
 		if !ok {
-			return &kwhvalidating.ValidatorResult{
-				Valid:   false,
-				Message: fmt.Sprintf("%s: %s", path, err.Error()),
-			}, nil
+			return w.validateFailed(path, err.Error())
 		}
 
 		var msgs []string
 		for _, e := range errs {
 			msgs = append(msgs, e.Error())
 		}
-		return &kwhvalidating.ValidatorResult{
-			Valid:   false,
-			Message: fmt.Sprintf("%s: %s", path, strings.Join(msgs, ", ")),
-		}, nil
+		return w.validateFailed(path, strings.Join(msgs, ", "))
 	}
 
 	// TODO: check secretObjects
 
-	return &kwhvalidating.ValidatorResult{Valid: true}, nil
+	return w.validateSucceeded()
+}
+
+func (w *secretProviderClassWebhook) validateSkip() (*kwhvalidating.ValidatorResult, error) {
+	return w.validateSucceeded()
+}
+
+func (w *secretProviderClassWebhook) validateSucceeded() (*kwhvalidating.ValidatorResult, error) {
+	return &kwhvalidating.ValidatorResult{
+		Valid: true,
+	}, nil
+}
+
+func (w *secretProviderClassWebhook) validateFailed(path, message string) (*kwhvalidating.ValidatorResult, error) {
+	return &kwhvalidating.ValidatorResult{
+		Valid:   false,
+		Message: fmt.Sprintf("%s: %s", path, message),
+	}, nil
 }
