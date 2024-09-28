@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
-	"strings"
 
 	"github.com/gidoichi/secrets-store-csi-driver-provider-infisical/config"
 	"github.com/go-playground/validator/v10"
@@ -89,30 +87,21 @@ func (w *secretProviderClassWebhook) Validate(_ context.Context, _ *kwhmodel.Adm
 		return w.validateSkip()
 	}
 
-	path := "spec.parameters"
+	const path = "spec.parameters"
 
 	mountConfig := config.NewMountConfig(*w.validator)
 	attributes, err := json.Marshal(spc.Spec.Parameters)
 	if err != nil {
-		return w.validateFailed(path, err.Error())
+		return w.validateFailed(config.NewConfigError(path, err))
 	}
 	attributesDecoder := json.NewDecoder(bytes.NewReader(attributes))
 	attributesDecoder.DisallowUnknownFields()
 	if err := attributesDecoder.Decode(mountConfig); err != nil {
-		return w.validateFailed(path, err.Error())
+		return w.validateFailed(config.NewConfigError(path, err))
 	}
 
 	if err := mountConfig.Validate(); err != nil {
-		errs, ok := err.(validator.ValidationErrors)
-		if !ok {
-			return w.validateFailed(path, err.Error())
-		}
-
-		var msgs []string
-		for _, e := range errs {
-			msgs = append(msgs, e.Error())
-		}
-		return w.validateFailed(path, strings.Join(msgs, ", "))
+		return w.validateFailed(config.NewConfigError(path, err))
 	}
 
 	// TODO: check secretObjects
@@ -130,9 +119,9 @@ func (w *secretProviderClassWebhook) validateSucceeded() (*kwhvalidating.Validat
 	}, nil
 }
 
-func (w *secretProviderClassWebhook) validateFailed(path, message string) (*kwhvalidating.ValidatorResult, error) {
+func (w *secretProviderClassWebhook) validateFailed(err error) (*kwhvalidating.ValidatorResult, error) {
 	return &kwhvalidating.ValidatorResult{
 		Valid:   false,
-		Message: fmt.Sprintf("%s: %s", path, message),
+		Message: err.Error(),
 	}, nil
 }
