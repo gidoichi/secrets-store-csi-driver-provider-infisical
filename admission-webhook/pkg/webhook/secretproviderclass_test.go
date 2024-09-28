@@ -66,6 +66,34 @@ func TestSecretProviderClassWebhookValidates(t *testing.T) {
 			},
 		},
 		{
+			"SuccessfullyWithCorrectSecretProviderClass",
+			func(t *testing.T) {
+				// Given
+				spc := &secretstorecsidriverv1.SecretProviderClass{
+					Spec: secretstorecsidriverv1.SecretProviderClassSpec{
+						Provider: "infisical",
+						Parameters: map[string]string{
+							"projectSlug":         "project",
+							"envSlug":             "env",
+							"authSecretName":      "auth-secret",
+							"authSecretNamespace": "default",
+						},
+					},
+				}
+
+				// When
+				result, err := validatingWebhook.Validate(ctx, ar, spc)
+
+				// Then
+				if err != nil {
+					t.Errorf("unexpected error: %s", err)
+				}
+				if !result.Valid {
+					t.Errorf("expected valid, got invalid")
+				}
+			},
+		},
+		{
 			"FailedWithUnkonwnFields",
 			func(t *testing.T) {
 				// Given
@@ -148,6 +176,44 @@ func TestSecretProviderClassWebhookValidates(t *testing.T) {
 				}
 				if !strings.HasPrefix(result.Message, "spec.parameters.objects: ") {
 					t.Errorf("unexpected error: %s", result.Message)
+				}
+			},
+		},
+		{
+			"FailedWithInvalidSecretObjects",
+			func(t *testing.T) {
+				// Given
+				spc := &secretstorecsidriverv1.SecretProviderClass{
+					Spec: secretstorecsidriverv1.SecretProviderClassSpec{
+						Provider: "infisical",
+						Parameters: map[string]string{
+							"projectSlug":         "project",
+							"envSlug":             "env",
+							"authSecretName":      "auth-secret",
+							"authSecretNamespace": "default",
+							"objects":             "",
+						},
+						SecretObjects: []*secretstorecsidriverv1.SecretObject{
+							{
+								Data: []*secretstorecsidriverv1.SecretObjectData{
+									{
+										ObjectName: "object1",
+									},
+								},
+							},
+						},
+					},
+				}
+
+				// When
+				result, err := validatingWebhook.Validate(ctx, ar, spc)
+
+				// Then
+				if err != nil {
+					t.Errorf("unexpected error: %s", err)
+				}
+				if result.Valid {
+					t.Errorf("expected invalid, got valid")
 				}
 			},
 		},

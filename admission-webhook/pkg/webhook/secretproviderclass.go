@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
+	"slices"
 
 	"github.com/gidoichi/secrets-store-csi-driver-provider-infisical/config"
 	"github.com/go-playground/validator/v10"
@@ -87,7 +90,7 @@ func (w *secretProviderClassWebhook) Validate(_ context.Context, _ *kwhmodel.Adm
 		return w.validateSkip()
 	}
 
-	const path = "spec.parameters"
+	path := "spec.parameters"
 
 	mountConfig := config.NewMountConfig(*w.validator)
 	attributes, err := json.Marshal(spc.Spec.Parameters)
@@ -104,7 +107,37 @@ func (w *secretProviderClassWebhook) Validate(_ context.Context, _ *kwhmodel.Adm
 		return w.validateFailed(config.NewConfigError(path, err))
 	}
 
-	// TODO: check secretObjects
+	if _, found := spc.Spec.Parameters["objects"]; !found {
+		return w.validateSucceeded()
+	}
+
+	path = "spec.parameters.objects"
+
+	objects, err := mountConfig.Objects()
+	if err != nil {
+		return w.validateFailed(config.NewConfigError(path, err))
+	}
+
+	path = "spec.secretObjects"
+
+	var objectNames []string
+	for _, object := range objects {
+		objectNames = append(objectNames, object.Name)
+	}
+	var errs error
+	for sindex, secretObject := range spc.Spec.SecretObjects {
+		for dindex, data := range secretObject.Data {
+			if !slices.Contains(objectNames, data.ObjectName) {
+				err := errors.New(data.ObjectName)
+				err = config.NewConfigError(fmt.Sprintf(path+"[%d].data[%d].objectName", sindex, dindex), err)
+				errs = errors.Join(errs, err)
+			}
+		}
+	}
+	if errs != nil {
+		err := fmt.Errorf("not found in spec.parameters.objects: %w", errs)
+		return w.validateFailed(err)
+	}
 
 	return w.validateSucceeded()
 }
