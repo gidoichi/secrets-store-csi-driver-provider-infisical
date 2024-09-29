@@ -54,16 +54,6 @@ func (m *Main) Run() error {
 	}
 
 	// Create webhooks
-	mutSPCWebhook, err := webhook.NewSecretProviderClassMutatingWebhook(m.logger)
-	if err != nil {
-		return err
-	}
-	mutSPCWebhook = kwhwebhook.NewMeasuredWebhook(metricsRec, mutSPCWebhook)
-	mutSPCHandler, err := kwhhttp.HandlerFor(kwhhttp.HandlerConfig{Webhook: mutSPCWebhook, Logger: m.logger})
-	if err != nil {
-		return err
-	}
-
 	valSPCWebhook, err := webhook.NewSecretProviderClassValidatingWebhook(m.logger)
 	if err != nil {
 		return err
@@ -81,7 +71,6 @@ func (m *Main) Run() error {
 	go func() {
 		m.logger.Infof("webhooks listening on %s...", m.flags.ListenAddress)
 		mux := http.NewServeMux()
-		mux.Handle("/webhooks/mutating/secretproviderclass", mutSPCHandler)
 		mux.Handle("/webhooks/validating/secretproviderclass", valSPCHandler)
 		errC <- http.ListenAndServeTLS(
 			m.flags.ListenAddress,

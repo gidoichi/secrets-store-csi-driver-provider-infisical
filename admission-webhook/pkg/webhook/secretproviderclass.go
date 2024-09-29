@@ -13,7 +13,6 @@ import (
 	kwhlog "github.com/slok/kubewebhook/v2/pkg/log"
 	kwhmodel "github.com/slok/kubewebhook/v2/pkg/model"
 	kwhwebhook "github.com/slok/kubewebhook/v2/pkg/webhook"
-	kwhmutating "github.com/slok/kubewebhook/v2/pkg/webhook/mutating"
 	kwhvalidating "github.com/slok/kubewebhook/v2/pkg/webhook/validating"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	secretstorecsidriverv1 "sigs.k8s.io/secrets-store-csi-driver/apis/v1"
@@ -26,38 +25,6 @@ const (
 type secretProviderClassWebhook struct {
 	logger    kwhlog.Logger
 	validator *validator.Validate
-}
-
-var _ kwhmutating.Mutator = &secretProviderClassWebhook{}
-
-// NewSecretProviderClassMutatingWebhook returns a new secretproviderclass mutating webhook.
-func NewSecretProviderClassMutatingWebhook(logger kwhlog.Logger) (kwhwebhook.Webhook, error) {
-	// Create mutators.
-	mutators := []kwhmutating.Mutator{
-		&secretProviderClassWebhook{
-			logger: logger,
-		},
-	}
-
-	return kwhmutating.NewWebhook(kwhmutating.WebhookConfig{
-		ID:      "secretproviderclass-mutator",
-		Obj:     &secretstorecsidriverv1.SecretProviderClass{},
-		Mutator: kwhmutating.NewChain(logger, mutators...),
-		Logger:  logger,
-	})
-}
-
-func (w *secretProviderClassWebhook) Mutate(_ context.Context, _ *kwhmodel.AdmissionReview, obj metav1.Object) (*kwhmutating.MutatorResult, error) {
-	spc, ok := obj.(*secretstorecsidriverv1.SecretProviderClass)
-	if !ok {
-		// If not a secretproviderclass just continue the mutation chain(if there is one) and don't do nothing.
-		return &kwhmutating.MutatorResult{}, nil
-	}
-	if spc.Spec.Provider != InfisicalSecretProviderName {
-		return &kwhmutating.MutatorResult{}, nil
-	}
-
-	return &kwhmutating.MutatorResult{MutatedObject: spc}, nil
 }
 
 var _ kwhvalidating.Validator = &secretProviderClassWebhook{}
