@@ -8,6 +8,13 @@
   "schedule": "* * 1-7 * 6",
   "packageRules": [
     {
+      "matchManagers": ["gomod"],
+      "matchPackageNames": [
+        "github.com/gidoichi/secrets-store-csi-driver-provider-infisical"
+      ],
+      "enabled": false
+    },
+    {
       "groupName": "dependencies",
       "matchPackagePatterns": [".*"],
       "recreateWhen": "always"
