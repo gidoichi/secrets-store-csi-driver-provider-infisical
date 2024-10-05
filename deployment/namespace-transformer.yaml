@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: NamespaceTransformer
+metadata:
+  name: dummy
+  # REPLACE if deploying to a different namespace
+  namespace: kube-system
+setRoleBindingSubjects: allServiceAccounts
+unsetOnly: false
