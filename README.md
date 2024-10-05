@@ -45,3 +45,12 @@ Some features are not supported by this provider. Please refer to [this](https:/
 
 [secret]: https://secrets-store-csi-driver.sigs.k8s.io/topics/sync-as-kubernetes-secret
 [rotation]: https://secrets-store-csi-driver.sigs.k8s.io/topics/secret-auto-rotation
+
+### Test
+E2E [Testing](https://github.com/kubernetes-sigs/secrets-store-csi-driver/tree/main/test)
+
+| Test Category                                                            | Status          |
+|--------------------------------------------------------------------------|-----------------|
+| Mount tests<ul><li>CSI Inline volume test with Pod Portability</li></ul> | ![mount][mount] |
+
+[mount]: https://github.com/gidoichi/secrets-store-csi-driver-provider-infisical/actions/workflows/test-mount.yml/badge.svg?branch=e2e
