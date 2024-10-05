@@ -10,7 +10,6 @@
     {
       "groupName": "dependencies",
       "matchPackagePatterns": [".*"],
-      "automerge": true,
       "recreateWhen": "always"
     }
   ]
