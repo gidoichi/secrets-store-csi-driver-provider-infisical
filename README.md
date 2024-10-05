@@ -12,7 +12,7 @@ Unofficial Infisical provider for the Secret Store CSI Driver.
      ```
    - If you want to use kubectl (Using HELM is recommended, as some features are excluded from `./deployment`):
      ```
-     kubectl apply -f ./deployment/infisical-csi-provider.yaml
+     kubectl apply -k ./deployment
      ```
 
 ## Usage
