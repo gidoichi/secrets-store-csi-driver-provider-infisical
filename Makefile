@@ -1,3 +1,10 @@
+BATS := ./test/bats/bin/bats
+BATSFLAGS := -t test/e2e.bats --show-output-of-passing-tests --timing --trace --verbose-run
+
 .PHONY: e2e
 e2e:
-	./test/bats/bin/bats -t test/e2e.bats --verbose-run --show-output-of-passing-tests
+	$(BATS) $(BATSFLAGS)
+
+.PHONY: e2e-mount
+e2e-mount:
+	$(BATS) $(BATSFLAGS) --filter '^CSI inline volume test with pod portability($$| - )'

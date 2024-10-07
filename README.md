@@ -47,7 +47,7 @@ Some features are not supported by this provider. Please refer to [this](https:/
 [rotation]: https://secrets-store-csi-driver.sigs.k8s.io/topics/secret-auto-rotation
 
 ### Test
-E2E [Testing](https://github.com/kubernetes-sigs/secrets-store-csi-driver/tree/main/test)
+E2E [Testing](https://github.com/kubernetes-sigs/secrets-store-csi-driver/tree/v1.4.5/test)
 
 | Test Category                                                                                                                                                                                                                                         | Status                     |
 |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------|

@@ -20,4 +20,4 @@ jobs:
         run: |
           helm repo add secrets-store-csi-driver https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
           helm install secrets-store-csi-driver secrets-store-csi-driver/secrets-store-csi-driver --version v1.4.5 --set syncSecret.enabled=true
-          make e2e
+          make e2e-mount
