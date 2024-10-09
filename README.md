@@ -12,7 +12,7 @@ Unofficial Infisical provider for the Secret Store CSI Driver.
      ```
    - If you want to use kubectl (Using HELM is recommended, as some features are excluded from `./deployment`):
      ```
-     kubectl apply -f ./deployment/infisical-csi-provider.yaml
+     kubectl apply -k ./deployment
      ```
 
 ## Usage
@@ -45,3 +45,22 @@ Some features are not supported by this provider. Please refer to [this](https:/
 
 [secret]: https://secrets-store-csi-driver.sigs.k8s.io/topics/sync-as-kubernetes-secret
 [rotation]: https://secrets-store-csi-driver.sigs.k8s.io/topics/secret-auto-rotation
+
+### Test
+E2E [Testing](https://github.com/kubernetes-sigs/secrets-store-csi-driver/tree/v1.4.5/test)
+
+| Test Category                                                                                                                                                                                                                                         | Status                         |
+|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------|
+| Mount tests<ul><li>CSI Inline volume test with Pod Portability</li></ul>                                                                                                                                                                              | [![mount-badge]][mount-ci]     |
+| Sync as Kubernetes secrets<ul><li>Check Kubernetes secret</li><li>Check owner references in secret with multiple owners</li><li>Check owner references updated when a owner is deleted</li><li>Check secret deleted when all owners deleted</li></ul> | not tested yet                 |
+| Namespaced Scope SecretProviderClass<ul><li>Check `SecretProviderClass` in same namespace as pod</li></ul>                                                                                                                                            | not tested yet                 |
+| Namespaced Scope SecretProviderClass negative test<ul><li>Check volume mount fails when `SecretProviderClass` not found in same namespace as pod</li></ul>                                                                                            | not tested yet                 |
+| Multiple SecretProviderClass<ul><li>Check multiple CSI Inline volumes with different SecretProviderClass</li></ul>                                                                                                                                    | not tested yet                 |
+| Autorotation of mount contents and Kubernetes secrets<ul><li>Check mount content and Kubernetes secret updated after rotation</li></ul>                                                                                                               | not tested yet                 |
+| Test filtered watch for `nodePublishSecretRef` feature<ul><li>Check labelled nodePublishSecretRef accessible after upgrade to enable `filteredWatchSecret` feature</li></ul>                                                                          | not tested yet                 |
+| Windows tests                                                                                                                                                                                                                                         | [![windows-badge]][windows-ci] |
+
+[mount-badge]: https://github.com/gidoichi/secrets-store-csi-driver-provider-infisical/actions/workflows/test-mount.yml/badge.svg?branch=e2e
+[mount-ci]: https://github.com/gidoichi/secrets-store-csi-driver-provider-infisical/actions/workflows/test-mount.yml?query=branch%3Ae2e
+[windows-badge]: https://github.com/gidoichi/secrets-store-csi-driver-provider-infisical/actions/workflows/test-windows.yml/badge.svg?branch=e2e
+[windows-ci]: https://github.com/gidoichi/secrets-store-csi-driver-provider-infisical/actions/workflows/test-windows.yml?query=branch%3Ae2e
