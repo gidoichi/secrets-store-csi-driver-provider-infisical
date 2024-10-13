@@ -21,6 +21,8 @@ export SECRET_VALUE="${SECRET_VALUE:-secret}"
 
 # export node selector var
 export NODE_SELECTOR_OS="$NODE_SELECTOR_OS"
+# default label value of secret synched to k8s
+export LABEL_VALUE=${LABEL_VALUE:-"test"}
 
 # export the secrets-store API version to be used
 export API_VERSION="$(get_secrets_store_api_version)"
@@ -41,6 +43,11 @@ teardown_file() {
 
     # for `mount`
     envsubst < "$E2E_PROVIDER_TESTS_DIR/pod-secrets-store-inline-volume-crd.yaml" | kubectl delete -n "$NAMESPACE" -f - || true
+
+    # for `sync`
+    envsubst < "$BATS_TESTS_DIR/infisical_synck8s_v1_secretproviderclass.yaml" | kubectl delete -n "$NAMESPACE" -f - || true
+    envsubst < "$E2E_PROVIDER_TESTS_DIR/deployment-synck8s-e2e-provider.yaml" | kubectl delete -n "$NAMESPACE" -f - || true
+    envsubst < "$E2E_PROVIDER_TESTS_DIR/deployment-two-synck8s-e2e-provider.yaml" | kubectl delete -n "$NAMESPACE" -f - || true
 }
 
 setup() {
@@ -115,17 +122,60 @@ teardown() {
 
 # bats test_tags=sync
 @test "Sync as K8s secrets - create deployment" {
-    :
+    envsubst < "$BATS_TESTS_DIR/infisical_synck8s_v1_secretproviderclass.yaml" | kubectl apply -n "$NAMESPACE" -f -
+
+    cmd="kubectl get -n '$NAMESPACE' secretproviderclasses.secrets-store.csi.x-k8s.io/e2e-provider-sync -o yaml | grep infisical"
+    wait_for_process "$WAIT_TIME" "$SLEEP_TIME" "$cmd"
+
+    envsubst < "$E2E_PROVIDER_TESTS_DIR/deployment-synck8s-e2e-provider.yaml" | kubectl apply -n "$NAMESPACE" -f -
+    envsubst < "$E2E_PROVIDER_TESTS_DIR/deployment-two-synck8s-e2e-provider.yaml" | kubectl apply -n "$NAMESPACE" -f -
+
+    kubectl wait -n "$NAMESPACE" --for=condition=Ready --timeout="${WAIT_TIME}s" pod -l app=busybox || true
+    kubectl wait -n "$NAMESPACE" --for=condition=Ready --timeout=0 pod -l app=busybox # TODO: remove
 }
 
 # bats test_tags=sync
 @test "Sync as K8s secrets - read secret from pod, read K8s secret, read env var, check secret ownerReferences with multiple owners" {
-    :
+    POD=$(kubectl get -n "$NAMESPACE" pod -l app=busybox -o jsonpath="{.items[0].metadata.name}")
+
+    result=$(kubectl exec -n "$NAMESPACE" "$POD" -- cat "/mnt/secrets-store/$SECRET_NAME")
+    [[ "${result//$'\r'}" == "${SECRET_VALUE}" ]]
+
+    result=$(kubectl get -n "$NAMESPACE" secret foosecret -o jsonpath="{.data.username}" | base64 -d)
+    [[ "${result//$'\r'}" == "${SECRET_VALUE}" ]]
+
+    result=$(kubectl exec -n "$NAMESPACE" "$POD" -- printenv | grep SECRET_USERNAME) | awk -F"=" '{ print $2}'
+    [[ "${result//$'\r'}" == "${SECRET_VALUE}" ]]
+
+    result=$(kubectl get -n "$NAMESPACE" secret foosecret -o jsonpath="{.metadata.labels.environment}")
+    [[ "${result//$'\r'}" == "${LABEL_VALUE}" ]]
+
+    result=$(kubectl get -n "$NAMESPACE" secret foosecret -o jsonpath="{.metadata.labels.secrets-store\.csi\.k8s\.io/managed}")
+    [[ "${result//$'\r'}" == "true" ]]
+
+    run wait_for_process "$WAIT_TIME" "$SLEEP_TIME" "compare_owner_count foosecret '$NAMESPACE' 2"
+    assert_success
 }
 
 # bats test_tags=sync
 @test "Sync as K8s secrets - delete deployment, check owner ref updated, check secret deleted" {
-    :
+    if [[ "${INPLACE_UPGRADE_TEST}" == "true" ]]; then
+        skip
+    fi
+
+    run kubectl delete -n "$NAMESPACE" -f "$E2E_PROVIDER_TESTS_DIR/deployment-synck8s-e2e-provider.yaml"
+    assert_success
+
+    run wait_for_process "$WAIT_TIME" "$SLEEP_TIME" "compare_owner_count foosecret '$NAMESPACE' 1"
+    assert_success
+
+    run kubectl delete -n "$NAMESPACE" -f "$E2E_PROVIDER_TESTS_DIR/deployment-two-synck8s-e2e-provider.yaml"
+    assert_success
+
+    run wait_for_process "$WAIT_TIME" "$SLEEP_TIME" "check_secret_deleted foosecret '$NAMESPACE'"
+    assert_success
+
+    envsubst < "$BATS_TESTS_DIR/infisical_synck8s_v1_secretproviderclass.yaml" | kubectl delete -n "$NAMESPACE" -f -
 }
 
 # bats test_tags=namespaced
@@ -171,9 +221,4 @@ teardown() {
 # bats test_tags=filtered
 @test "Test filtered watch for nodePublishSecretRef feature" {
     :
-}
-
-# bats test_tags=windows
-@test "Windows tests" {
-    false
 }

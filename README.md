@@ -52,7 +52,7 @@ E2E [Testing](https://github.com/kubernetes-sigs/secrets-store-csi-driver/tree/v
 | Test Category                                                                                                                                                                                                                                         | Status                         |
 |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------|
 | Mount tests<ul><li>CSI Inline volume test with Pod Portability</li></ul>                                                                                                                                                                              | [![mount-badge]][mount-ci]     |
-| Sync as Kubernetes secrets<ul><li>Check Kubernetes secret</li><li>Check owner references in secret with multiple owners</li><li>Check owner references updated when a owner is deleted</li><li>Check secret deleted when all owners deleted</li></ul> | not tested yet                 |
+| Sync as Kubernetes secrets<ul><li>Check Kubernetes secret</li><li>Check owner references in secret with multiple owners</li><li>Check owner references updated when a owner is deleted</li><li>Check secret deleted when all owners deleted</li></ul> | [![sync-badge]][sync-ci]       |
 | Namespaced Scope SecretProviderClass<ul><li>Check `SecretProviderClass` in same namespace as pod</li></ul>                                                                                                                                            | not tested yet                 |
 | Namespaced Scope SecretProviderClass negative test<ul><li>Check volume mount fails when `SecretProviderClass` not found in same namespace as pod</li></ul>                                                                                            | not tested yet                 |
 | Multiple SecretProviderClass<ul><li>Check multiple CSI Inline volumes with different SecretProviderClass</li></ul>                                                                                                                                    | not tested yet                 |
@@ -62,5 +62,7 @@ E2E [Testing](https://github.com/kubernetes-sigs/secrets-store-csi-driver/tree/v
 
 [mount-badge]: https://github.com/gidoichi/secrets-store-csi-driver-provider-infisical/actions/workflows/test-mount.yml/badge.svg?branch=e2e
 [mount-ci]: https://github.com/gidoichi/secrets-store-csi-driver-provider-infisical/actions/workflows/test-mount.yml?query=branch%3Ae2e
+[sync-badge]: https://github.com/gidoichi/secrets-store-csi-driver-provider-infisical/actions/workflows/test-sync.yml/badge.svg?branch=e2e
+[sync-ci]: https://github.com/gidoichi/secrets-store-csi-driver-provider-infisical/actions/workflows/test-sync.yml?query=branch%3Ae2e
 [windows-badge]: https://github.com/gidoichi/secrets-store-csi-driver-provider-infisical/actions/workflows/test-windows.yml/badge.svg?branch=e2e
 [windows-ci]: https://github.com/gidoichi/secrets-store-csi-driver-provider-infisical/actions/workflows/test-windows.yml?query=branch%3Ae2e

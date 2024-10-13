@@ -11,7 +11,7 @@ e2e-mount:
 
 .PHONY: e2e-sync
 e2e-sync:
-	$(BATS) $(BATSFLAGS) --filter-tags 'init' --filter-tags 'mount'
+	$(BATS) $(BATSFLAGS) --filter-tags 'init' --filter-tags 'sync'
 
 .PHONY: e2e-namespaced
 e2e-namespaced:
