@@ -19,11 +19,13 @@ jobs:
           submodules: true
       - uses: mig4/setup-bats@v1
         with:
+          # renovate: datasource=github-tags depName=bats-core/bats-core versioning=semver
           bats-version: 1.11.0
       - uses: engineerd/setup-kind@v0.5.0
         with:
+          # renovate: datasource=github-tags depName=kubernetes-sigs/kind versioning=semver
           version: v0.24.0
-          image: "kindest/node:v1.30.4"
+          image: kindest/node:v1.30.4
       - name: Test
         env:
           CLIENT_ID: ${{ secrets.E2E_CLIENT_ID }}
