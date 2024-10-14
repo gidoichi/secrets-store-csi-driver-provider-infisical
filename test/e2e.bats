@@ -38,7 +38,7 @@ teardown_file() {
     # for `init`
     PROVIDER_MANIFEST="$BATS_FILE_TMPDIR/$PROVIDER_MANIFEST"
     kubectl delete -k "$PROVIDER_MANIFEST" || true
-    envsubst < "$BATS_TESTS_DIR/infisical_secret.yaml" | kubectl delete -n "$NAMESPACE" -f - || true
+    envsubst < "$BATS_TESTS_DIR/infisical_secret.yaml" | kubectl delete -n "$PROVIDER_NAMESPACE" -f - || true
     envsubst < "$BATS_TESTS_DIR/infisical_v1_secretproviderclass.yaml" | kubectl delete -n "$NAMESPACE" -f - || true
 
     # for `mount`
@@ -48,6 +48,11 @@ teardown_file() {
     envsubst < "$BATS_TESTS_DIR/infisical_synck8s_v1_secretproviderclass.yaml" | kubectl delete -n "$NAMESPACE" -f - || true
     envsubst < "$E2E_PROVIDER_TESTS_DIR/deployment-synck8s-e2e-provider.yaml" | kubectl delete -n "$NAMESPACE" -f - || true
     envsubst < "$E2E_PROVIDER_TESTS_DIR/deployment-two-synck8s-e2e-provider.yaml" | kubectl delete -n "$NAMESPACE" -f - || true
+
+    # for `namespaced`
+    kubectl create namespace test-ns --dry-run=client -o yaml | kubectl delete -f - || true
+    envsubst < "$BATS_TESTS_DIR/infisical_v1_secretproviderclass_ns.yaml" | kubectl delete -f - || true
+    envsubst < "$E2E_PROVIDER_TESTS_DIR/deployment-synck8s-e2e-provider.yaml" | kubectl delete -n test-ns -f - || true
 }
 
 setup() {
@@ -68,11 +73,12 @@ teardown() {
 
     PROVIDER_POD=$(kubectl get -n "$PROVIDER_NAMESPACE" pod -l app.kubernetes.io/name=secrets-store-csi-driver-provider-infisical -o jsonpath="{.items[0].metadata.name}")
     kubectl get -n "$PROVIDER_NAMESPACE" "pod/$PROVIDER_POD"
+
+    envsubst < "$BATS_TESTS_DIR/infisical_secret.yaml" | kubectl apply -n "$PROVIDER_NAMESPACE" -f -
 }
 
 # bats test_tags=init
 @test "deploy infisical secretproviderclass crd" {
-    envsubst < "$BATS_TESTS_DIR/infisical_secret.yaml" | kubectl apply -n "$NAMESPACE" -f -
     envsubst < "$BATS_TESTS_DIR/infisical_v1_secretproviderclass.yaml" | kubectl apply -n "$NAMESPACE" -f -
 
     cmd="kubectl get -n '$NAMESPACE' secretproviderclasses.secrets-store.csi.x-k8s.io/e2e-provider -o yaml | grep infisical"
@@ -159,10 +165,6 @@ teardown() {
 
 # bats test_tags=sync
 @test "Sync as K8s secrets - delete deployment, check owner ref updated, check secret deleted" {
-    if [[ "${INPLACE_UPGRADE_TEST}" == "true" ]]; then
-        skip
-    fi
-
     run kubectl delete -n "$NAMESPACE" -f "$E2E_PROVIDER_TESTS_DIR/deployment-synck8s-e2e-provider.yaml"
     assert_success
 
@@ -180,17 +182,47 @@ teardown() {
 
 # bats test_tags=namespaced
 @test "Test Namespaced scope SecretProviderClass - create deployment" {
-    :
+    kubectl create namespace test-ns --dry-run=client -o yaml | kubectl apply -f -
+
+    envsubst < "$BATS_TESTS_DIR/infisical_v1_secretproviderclass_ns.yaml" | kubectl apply -f -
+
+    kubectl wait --for condition=established --timeout=60s crd/secretproviderclasses.secrets-store.csi.x-k8s.io
+
+    cmd="kubectl get secretproviderclasses.secrets-store.csi.x-k8s.io/e2e-provider-sync -o yaml | grep e2e-provider"
+    wait_for_process "$WAIT_TIME" "$SLEEP_TIME" "$cmd"
+
+    cmd="kubectl get secretproviderclasses.secrets-store.csi.x-k8s.io/e2e-provider-sync -n test-ns -o yaml | grep e2e-provider"
+    wait_for_process "$WAIT_TIME" "$SLEEP_TIME" "$cmd"
+
+    envsubst < "$E2E_PROVIDER_TESTS_DIR/deployment-synck8s-e2e-provider.yaml" | kubectl apply -n test-ns -f -
+
+    kubectl wait --for=condition=Ready --timeout=60s pod -l app=busybox -n test-ns
 }
 
 # bats test_tags=namespaced
 @test "Test Namespaced scope SecretProviderClass - Sync as K8s secrets - read secret from pod, read K8s secret, read env var, check secret ownerReferences" {
-    :
+    POD=$(kubectl get pod -l app=busybox -n test-ns -o jsonpath="{.items[0].metadata.name}")
+
+    result=$(kubectl exec -n test-ns "$POD" -- cat "/mnt/secrets-store/$SECRET_NAME")
+    [[ "${result//$'\r'}" == "${SECRET_VALUE}" ]]
+
+    result=$(kubectl get secret foosecret -n test-ns -o jsonpath="{.data.username}" | base64 -d)
+    [[ "${result//$'\r'}" == "${SECRET_VALUE}" ]]
+
+    result=$(kubectl exec -n test-ns "$POD" -- printenv | grep SECRET_USERNAME) | awk -F"=" '{ print $2}'
+    [[ "${result//$'\r'}" == "${SECRET_VALUE}" ]]
+
+    run wait_for_process "$WAIT_TIME" "$SLEEP_TIME" "compare_owner_count foosecret test-ns 1"
+    assert_success
 }
 
 # bats test_tags=namespaced
 @test "Test Namespaced scope SecretProviderClass - Sync as K8s secrets - delete deployment, check secret deleted" {
-    :
+    run kubectl delete -f "$E2E_PROVIDER_TESTS_DIR/deployment-synck8s-e2e-provider.yaml" -n test-ns
+    assert_success
+
+    run wait_for_process "$WAIT_TIME" "$SLEEP_TIME" "check_secret_deleted foosecret test-ns"
+    assert_success
 }
 
 # bats test_tags=namespaced
