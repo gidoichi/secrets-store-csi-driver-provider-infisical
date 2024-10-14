@@ -144,8 +144,7 @@ teardown() {
     envsubst < "$E2E_PROVIDER_TESTS_DIR/deployment-synck8s-e2e-provider.yaml" | kubectl apply -n "$NAMESPACE" -f -
     envsubst < "$E2E_PROVIDER_TESTS_DIR/deployment-two-synck8s-e2e-provider.yaml" | kubectl apply -n "$NAMESPACE" -f -
 
-    kubectl wait -n "$NAMESPACE" --for=condition=Ready --timeout=60s pod -l app=busybox || true
-    kubectl wait -n "$NAMESPACE" --for=condition=Ready --timeout=0 pod -l app=busybox # TODO: remove
+    kubectl wait -n "$NAMESPACE" --for=condition=Ready --timeout=60s pod -l app=busybox
 }
 
 # bats test_tags=sync
