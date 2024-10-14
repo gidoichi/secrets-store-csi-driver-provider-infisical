@@ -28,16 +28,10 @@ export LABEL_VALUE="${LABEL_VALUE:-"test"}"
 export API_VERSION="$(get_secrets_store_api_version)"
 
 export ENV_SLUG="${ENV_SLUG:-dev}"
-PROVIDER_MANIFEST='deployment'
-
-setup_file() {
-    cp -r "$PROVIDER_MANIFEST" "$BATS_FILE_TMPDIR/$PROVIDER_MANIFEST"
-}
 
 teardown_file() {
     # for `init`
-    PROVIDER_MANIFEST="$BATS_FILE_TMPDIR/$PROVIDER_MANIFEST"
-    kubectl delete -k "$PROVIDER_MANIFEST" || true
+    helm uninstall secrets-store-csi-driver-provider-infisical -n "$PROVIDER_NAMESPACE" || true
     envsubst < "$BATS_TESTS_DIR/infisical_secret.yaml" | kubectl delete -n "$PROVIDER_NAMESPACE" -f - || true
     envsubst < "$BATS_TESTS_DIR/infisical_v1_secretproviderclass.yaml" | kubectl delete -n "$NAMESPACE" -f - || true
 
@@ -73,10 +67,11 @@ teardown() {
 
 # bats test_tags=init
 @test "install infisical provider" {
-    PROVIDER_MANIFEST="$BATS_FILE_TMPDIR/$PROVIDER_MANIFEST"
-    NAMESPACE="$PROVIDER_NAMESPACE" yq -i '.metadata.namespace = env(NAMESPACE)' "$PROVIDER_MANIFEST/namespace-transformer.yaml"
-    IMAGE_TAG="${IMAGE_TAG:-latest}" yq -i '.images[0].newTag = env(IMAGE_TAG)' "$PROVIDER_MANIFEST/kustomization.yaml"
-    kubectl apply -k "$PROVIDER_MANIFEST"
+    helm repo add secrets-store-csi-driver-provider-infisical https://raw.githubusercontent.com/gidoichi/secrets-store-csi-driver-provider-infisical/main/charts
+    helm install secrets-store-csi-driver-provider-infisical \
+        secrets-store-csi-driver-provider-infisical/secrets-store-csi-driver-provider-infisical \
+        --namespace "$PROVIDER_NAMESPACE" \
+        --set "image.tag=${IMAGE_TAG:-latest}"
     kubectl wait -n "$PROVIDER_NAMESPACE" --for=condition=Ready --timeout=60s pod -l app.kubernetes.io/name=secrets-store-csi-driver-provider-infisical
 
     PROVIDER_POD=$(kubectl get -n "$PROVIDER_NAMESPACE" pod -l app.kubernetes.io/name=secrets-store-csi-driver-provider-infisical -o jsonpath="{.items[0].metadata.name}")

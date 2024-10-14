@@ -8,11 +8,12 @@ Unofficial Infisical provider for the Secret Store CSI Driver.
 1. Install Infisical secret proivder
    - If you can use [HELM](https://helm.sh/):
      ```
-     helm install secrets-store-csi-driver-provider-infisical charts/secrets-store-csi-driver-provider-infisical
+     helm repo add secrets-store-csi-driver-provider-infisical https://raw.githubusercontent.com/gidoichi/secrets-store-csi-driver-provider-infisical/main/charts
+     helm install secrets-store-csi-driver-provider-infisical secrets-store-csi-driver-provider-infisical/secrets-store-csi-driver-provider-infisical
      ```
    - If you want to use kubectl (Using HELM is recommended, as some features are excluded from `./deployment`):
      ```
-     kubectl apply -k ./deployment
+     kubectl apply -f ./deployment/infisical-csi-provider.yaml
      ```
 
 ## Usage
