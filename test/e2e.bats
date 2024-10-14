@@ -4,7 +4,7 @@ load 'test_helper/secrets-store-csi-driver/test/bats/helpers'
 
 BATS_TESTS_DIR=test/tests/infisical
 E2E_PROVIDER_TESTS_DIR=test/test_helper/secrets-store-csi-driver/test/bats/tests/e2e_provider
-WAIT_TIME=120
+WAIT_TIME=60
 SLEEP_TIME=1
 export NAMESPACE=kube-public
 export PROVIDER_NAMESPACE=kube-public
@@ -22,7 +22,7 @@ export SECRET_VALUE="${SECRET_VALUE:-secret}"
 # export node selector var
 export NODE_SELECTOR_OS="$NODE_SELECTOR_OS"
 # default label value of secret synched to k8s
-export LABEL_VALUE=${LABEL_VALUE:-"test"}
+export LABEL_VALUE="${LABEL_VALUE:-"test"}"
 
 # export the secrets-store API version to be used
 export API_VERSION="$(get_secrets_store_api_version)"
@@ -50,9 +50,9 @@ teardown_file() {
     envsubst < "$E2E_PROVIDER_TESTS_DIR/deployment-two-synck8s-e2e-provider.yaml" | kubectl delete -n "$NAMESPACE" -f - || true
 
     # for `namespaced`
-    kubectl create namespace test-ns --dry-run=client -o yaml | kubectl delete -f - || true
     envsubst < "$BATS_TESTS_DIR/infisical_v1_secretproviderclass_ns.yaml" | kubectl delete -f - || true
     envsubst < "$E2E_PROVIDER_TESTS_DIR/deployment-synck8s-e2e-provider.yaml" | kubectl delete -n test-ns -f - || true
+    kubectl create namespace test-ns --dry-run=client -o yaml | kubectl delete -f - || true
 }
 
 setup() {
@@ -69,7 +69,7 @@ teardown() {
     NAMESPACE="$PROVIDER_NAMESPACE" yq -i '.metadata.namespace = env(NAMESPACE)' "$PROVIDER_MANIFEST/namespace-transformer.yaml"
     IMAGE_TAG="${IMAGE_TAG:-latest}" yq -i '.images[0].newTag = env(IMAGE_TAG)' "$PROVIDER_MANIFEST/kustomization.yaml"
     kubectl apply -k "$PROVIDER_MANIFEST"
-    kubectl wait -n "$PROVIDER_NAMESPACE" --for=condition=Ready --timeout="${WAIT_TIME}s" pod -l app.kubernetes.io/name=secrets-store-csi-driver-provider-infisical
+    kubectl wait -n "$PROVIDER_NAMESPACE" --for=condition=Ready --timeout=60s pod -l app.kubernetes.io/name=secrets-store-csi-driver-provider-infisical
 
     PROVIDER_POD=$(kubectl get -n "$PROVIDER_NAMESPACE" pod -l app.kubernetes.io/name=secrets-store-csi-driver-provider-infisical -o jsonpath="{.items[0].metadata.name}")
     kubectl get -n "$PROVIDER_NAMESPACE" "pod/$PROVIDER_POD"
@@ -89,7 +89,7 @@ teardown() {
 @test "CSI inline volume test with pod portability" {
     envsubst < "$E2E_PROVIDER_TESTS_DIR/pod-secrets-store-inline-volume-crd.yaml" | kubectl apply -n "$NAMESPACE" -f -
 
-    kubectl wait -n "$NAMESPACE" --for=condition=Ready --timeout="${WAIT_TIME}s" pod/secrets-store-inline-crd
+    kubectl wait -n "$NAMESPACE" --for=condition=Ready --timeout=60s pod/secrets-store-inline-crd
 
     run kubectl get -n "$NAMESPACE" pod/secrets-store-inline-crd
     assert_success
@@ -110,7 +110,7 @@ teardown() {
     run kubectl delete -n "$NAMESPACE" pod secrets-store-inline-crd
     assert_success
 
-    run kubectl wait -n "$NAMESPACE" --for=delete --timeout="${WAIT_TIME}s" pod/secrets-store-inline-crd
+    run kubectl wait -n "$NAMESPACE" --for=delete --timeout=60s pod/secrets-store-inline-crd
     assert_success
 
     # Sleep to allow time for logs to propagate.
@@ -136,7 +136,7 @@ teardown() {
     envsubst < "$E2E_PROVIDER_TESTS_DIR/deployment-synck8s-e2e-provider.yaml" | kubectl apply -n "$NAMESPACE" -f -
     envsubst < "$E2E_PROVIDER_TESTS_DIR/deployment-two-synck8s-e2e-provider.yaml" | kubectl apply -n "$NAMESPACE" -f -
 
-    kubectl wait -n "$NAMESPACE" --for=condition=Ready --timeout="${WAIT_TIME}s" pod -l app=busybox || true
+    kubectl wait -n "$NAMESPACE" --for=condition=Ready --timeout=60s pod -l app=busybox || true
     kubectl wait -n "$NAMESPACE" --for=condition=Ready --timeout=0 pod -l app=busybox # TODO: remove
 }
 
