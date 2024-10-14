@@ -53,6 +53,10 @@ teardown_file() {
     envsubst < "$BATS_TESTS_DIR/infisical_v1_secretproviderclass_ns.yaml" | kubectl delete -f - || true
     envsubst < "$E2E_PROVIDER_TESTS_DIR/deployment-synck8s-e2e-provider.yaml" | kubectl delete -n test-ns -f - || true
     kubectl create namespace test-ns --dry-run=client -o yaml | kubectl delete -f - || true
+
+    # for `namespaced:neg`
+    envsubst < "$E2E_PROVIDER_TESTS_DIR/deployment-synck8s-e2e-provider.yaml" | kubectl delete -n negative-test-ns -f - || true
+    kubectl create namespace negative-test-ns --dry-run=client -o yaml | kubectl delete -f - || true
 }
 
 setup() {
@@ -225,9 +229,22 @@ teardown() {
     assert_success
 }
 
-# bats test_tags=namespaced
-@test "Test Namespaced scope SecretProviderClass negative test - Should fail when no secret provider class in same namespace" {
-    :
+# bats test_tags=namespaced:neg
+@test "Test Namespaced scope SecretProviderClass - Should fail when no secret provider class in same namespace" {
+    kubectl create namespace negative-test-ns --dry-run=client -o yaml | kubectl apply -f -
+
+    envsubst < "$E2E_PROVIDER_TESTS_DIR/deployment-synck8s-e2e-provider.yaml" | kubectl apply -n negative-test-ns -f -
+    sleep 5
+
+    POD=$(kubectl get pod -l app=busybox -n negative-test-ns -o jsonpath="{.items[0].metadata.name}")
+    cmd="kubectl describe pod '$POD' -n negative-test-ns | grep 'FailedMount.*failed to get secretproviderclass negative-test-ns/e2e-provider-sync.*not found'"
+    wait_for_process "$WAIT_TIME" "$SLEEP_TIME" "$cmd"
+
+    run kubectl delete -f "$E2E_PROVIDER_TESTS_DIR/deployment-synck8s-e2e-provider.yaml" -n negative-test-ns
+    assert_success
+
+    run kubectl delete ns negative-test-ns
+    assert_success
 }
 
 # bats test_tags=multiple

@@ -17,6 +17,10 @@ e2e-sync:
 e2e-namespaced:
 	$(BATS) $(BATSFLAGS) --filter-tags 'init' --filter-tags 'namespaced'
 
+.PHONY: e2e-namespaced-neg
+e2e-namespaced-neg:
+	$(BATS) $(BATSFLAGS) --filter-tags 'init' --filter-tags 'namespaced' --filter-tags 'namespaced:neg'
+
 .PHONY: e2e-multiple
 e2e-multiple:
 	$(BATS) $(BATSFLAGS) --filter-tags 'init' --filter-tags 'multiple'
