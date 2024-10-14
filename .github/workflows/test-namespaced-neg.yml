@@ -2,7 +2,7 @@ on:
   workflow_dispatch:
   push:
 jobs:
-  e2e-test:
+  namespaced-neg:
     uses: ./.github/workflows/test-e2e.yml
     secrets: inherit
     with:

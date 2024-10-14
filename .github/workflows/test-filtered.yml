@@ -2,7 +2,7 @@ on:
   workflow_dispatch:
   push:
 jobs:
-  e2e-test:
+  filtered:
     if: "false"
     runs-on: ubuntu-latest
     steps:
