@@ -3,8 +3,7 @@ on:
   push:
 jobs:
   e2e-test:
-    if: "false"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Test
-        run: "false"
+    uses: ./.github/workflows/test-e2e.yml
+    secrets: inherit
+    with:
+      type: multiple

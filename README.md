@@ -47,18 +47,18 @@ Some features are not supported by this provider. Please refer to [this](https:/
 [rotation]: https://secrets-store-csi-driver.sigs.k8s.io/topics/secret-auto-rotation
 
 ### Test
-E2E [Testing](https://github.com/kubernetes-sigs/secrets-store-csi-driver/tree/v1.4.5/test)
+The following are tested scenarios as part of CI. More detailed descriptions of these scenarios are available [here](https://github.com/kubernetes-sigs/secrets-store-csi-driver/tree/v1.4.5/test).
 
-| Test Category                                                                                                                                                                                                                                         | Status                           |
-|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------|
-| Mount tests<ul><li>CSI Inline volume test with Pod Portability</li></ul>                                                                                                                                                                              | [![mount-badge]][mount-ci]       |
-| Sync as Kubernetes secrets<ul><li>Check Kubernetes secret</li><li>Check owner references in secret with multiple owners</li><li>Check owner references updated when a owner is deleted</li><li>Check secret deleted when all owners deleted</li></ul> | [![sync-badge]][sync-ci]         |
-| Namespaced Scope SecretProviderClass<ul><li>Check `SecretProviderClass` in same namespace as pod</li></ul>                                                                                                                                            | [![ns-badge]][ns-ci]             |
-| Namespaced Scope SecretProviderClass negative test<ul><li>Check volume mount fails when `SecretProviderClass` not found in same namespace as pod</li></ul>                                                                                            | [![nsneg-badge]][nsneg-ci]       |
-| Multiple SecretProviderClass<ul><li>Check multiple CSI Inline volumes with different SecretProviderClass</li></ul>                                                                                                                                    | [![multiple-badge]][multiple-ci] |
-| Autorotation of mount contents and Kubernetes secrets<ul><li>Check mount content and Kubernetes secret updated after rotation</li></ul>                                                                                                               | [![rotate-badge]][rotate-ci]     |
-| Test filtered watch for `nodePublishSecretRef` feature<ul><li>Check labelled nodePublishSecretRef accessible after upgrade to enable `filteredWatchSecret` feature</li></ul>                                                                          | [![filtered-badge]][filtered-ci] |
-| Windows tests                                                                                                                                                                                                                                         | [![windows-badge]][windows-ci]   |
+| Test Category                                          | Status                           |
+|--------------------------------------------------------|----------------------------------|
+| Mount tests                                            | [![mount-badge]][mount-ci]       |
+| Sync as Kubernetes secrets                             | [![sync-badge]][sync-ci]         |
+| Namespaced Scope SecretProviderClass                   | [![ns-badge]][ns-ci]             |
+| Namespaced Scope SecretProviderClass negative test     | [![nsneg-badge]][nsneg-ci]       |
+| Multiple SecretProviderClass                           | [![multiple-badge]][multiple-ci] |
+| Autorotation of mount contents and Kubernetes secrets  | [![rotate-badge]][rotate-ci]     |
+| Test filtered watch for `nodePublishSecretRef` feature | [![filtered-badge]][filtered-ci] |
+| Windows tests                                          | [![windows-badge]][windows-ci]   |
 
 [mount-badge]: https://github.com/gidoichi/secrets-store-csi-driver-provider-infisical/actions/workflows/test-mount.yml/badge.svg?branch=e2e
 [mount-ci]: https://github.com/gidoichi/secrets-store-csi-driver-provider-infisical/actions/workflows/test-mount.yml?query=branch%3Ae2e

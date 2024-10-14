@@ -57,6 +57,10 @@ teardown_file() {
     # for `namespaced:neg`
     envsubst < "$E2E_PROVIDER_TESTS_DIR/deployment-synck8s-e2e-provider.yaml" | kubectl delete -n negative-test-ns -f - || true
     kubectl create namespace negative-test-ns --dry-run=client -o yaml | kubectl delete -f - || true
+
+    # for `multiple`
+    envsubst < "$BATS_TESTS_DIR/infisical_v1_multiple_secretproviderclass.yaml" | kubectl delete -n "$NAMESPACE" -f - || true
+    envsubst < "$E2E_PROVIDER_TESTS_DIR/pod-e2e-provider-inline-volume-multiple-spc.yaml" | kubectl delete -n "$NAMESPACE" -f - || true
 }
 
 setup() {
@@ -85,7 +89,7 @@ teardown() {
 @test "deploy infisical secretproviderclass crd" {
     envsubst < "$BATS_TESTS_DIR/infisical_v1_secretproviderclass.yaml" | kubectl apply -n "$NAMESPACE" -f -
 
-    cmd="kubectl get -n '$NAMESPACE' secretproviderclasses.secrets-store.csi.x-k8s.io/e2e-provider -o yaml | grep infisical"
+    cmd="kubectl get -n '$NAMESPACE' secretproviderclasses.secrets-store.csi.x-k8s.io/e2e-provider -o yaml | grep e2e-provider"
     wait_for_process "$WAIT_TIME" "$SLEEP_TIME" "$cmd"
 }
 
@@ -134,7 +138,7 @@ teardown() {
 @test "Sync as K8s secrets - create deployment" {
     envsubst < "$BATS_TESTS_DIR/infisical_synck8s_v1_secretproviderclass.yaml" | kubectl apply -n "$NAMESPACE" -f -
 
-    cmd="kubectl get -n '$NAMESPACE' secretproviderclasses.secrets-store.csi.x-k8s.io/e2e-provider-sync -o yaml | grep infisical"
+    cmd="kubectl get -n '$NAMESPACE' secretproviderclasses.secrets-store.csi.x-k8s.io/e2e-provider-sync -o yaml | grep e2e-provider"
     wait_for_process "$WAIT_TIME" "$SLEEP_TIME" "$cmd"
 
     envsubst < "$E2E_PROVIDER_TESTS_DIR/deployment-synck8s-e2e-provider.yaml" | kubectl apply -n "$NAMESPACE" -f -
@@ -249,25 +253,50 @@ teardown() {
 
 # bats test_tags=multiple
 @test "deploy multiple infisical secretproviderclass crd" {
-    :
+    envsubst < "$BATS_TESTS_DIR/infisical_v1_multiple_secretproviderclass.yaml" | kubectl apply -n "$NAMESPACE" -f -
+
+    kubectl wait -n "$NAMESPACE" --for condition=established --timeout=60s crd/secretproviderclasses.secrets-store.csi.x-k8s.io
+
+    cmd="kubectl get -n '$NAMESPACE' secretproviderclasses.secrets-store.csi.x-k8s.io/e2e-provider-spc-0 -o yaml | grep e2e-provider-spc-0"
+    wait_for_process "$WAIT_TIME" "$SLEEP_TIME" "$cmd"
+
+    cmd="kubectl get -n '$NAMESPACE' secretproviderclasses.secrets-store.csi.x-k8s.io/e2e-provider-spc-1 -o yaml | grep e2e-provider-spc-1"
+    wait_for_process "$WAIT_TIME" "$SLEEP_TIME" "$cmd"
 }
 
 # bats test_tags=multiple
 @test "deploy pod with multiple secret provider class" {
-    :
+    envsubst < "$E2E_PROVIDER_TESTS_DIR/pod-e2e-provider-inline-volume-multiple-spc.yaml" | kubectl apply -n "$NAMESPACE" -f -
+
+    kubectl wait -n "$NAMESPACE" --for=condition=Ready --timeout=60s pod/secrets-store-inline-multiple-crd
+
+    run kubectl get -n "$NAMESPACE" pod/secrets-store-inline-multiple-crd
+    assert_success
 }
 
 # bats test_tags=multiple
 @test "CSI inline volume test with multiple secret provider class" {
-    :
-}
+    result=$(kubectl exec -n "$NAMESPACE" secrets-store-inline-multiple-crd -- cat "/mnt/secrets-store-0/$SECRET_NAME")
+    [[ "${result//$'\r'}" == "${SECRET_VALUE}" ]]
 
-# bats test_tags=rotate
-@test "Autorotation of mount contents and Kubernetes secrets" {
-    :
-}
+    result=$(kubectl exec -n "$NAMESPACE" secrets-store-inline-multiple-crd -- cat "/mnt/secrets-store-1/$SECRET_NAME")
+    [[ "${result//$'\r'}" == "${SECRET_VALUE}" ]]
 
-# bats test_tags=filtered
-@test "Test filtered watch for nodePublishSecretRef feature" {
-    :
+    result=$(kubectl get -n "$NAMESPACE" secret foosecret-0 -o jsonpath="{.data.username}" | base64 -d)
+    [[ "${result//$'\r'}" == "${SECRET_VALUE}" ]]
+
+    result=$(kubectl exec -n "$NAMESPACE" secrets-store-inline-multiple-crd -- printenv | grep SECRET_USERNAME_0) | awk -F"=" '{ print $2}'
+    [[ "${result//$'\r'}" == "${SECRET_VALUE}" ]]
+
+    run wait_for_process "$WAIT_TIME" "$SLEEP_TIME" "compare_owner_count foosecret-0 '$NAMESPACE' 1"
+    assert_success
+
+    result=$(kubectl get -n "$NAMESPACE" secret foosecret-1 -o jsonpath="{.data.username}" | base64 -d)
+    [[ "${result//$'\r'}" == "${SECRET_VALUE}" ]]
+
+    result=$(kubectl exec -n "$NAMESPACE" secrets-store-inline-multiple-crd -- printenv | grep SECRET_USERNAME_1) | awk -F"=" '{ print $2}'
+    [[ "${result//$'\r'}" == "${SECRET_VALUE}" ]]
+
+    run wait_for_process "$WAIT_TIME" "$SLEEP_TIME" "compare_owner_count foosecret-1 '$NAMESPACE' 1"
+    assert_success
 }
