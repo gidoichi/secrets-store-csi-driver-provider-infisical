@@ -16,6 +16,32 @@ Unofficial Infisical provider for the Secret Store CSI Driver.
      kubectl apply -f ./deployment/infisical-csi-provider.yaml
      ```
 
+### Enable SecretProviderClass Validation
+This feature implements a [ValidatingAdmissionWebhook](https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/#validatingadmissionwebhook) to reject invalid SecretProviderClass. When enabled, invalid SecretProviderClass, such as those with unspecified required fields or specify unknown fields, cannot be created.
+
+For example:
+
+```console
+$ cat secretproviderclass.yaml
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: example-provider-infisical
+spec:
+  provider: infisical
+  parameters:
+
+$ kubectl apply -f secretproviderclass.yaml
+Error from server: error when creating "secretproviderclass.yaml": admission webhook "vsecretproviderclass.kb.io" denied the request: spec.parameters: Key: 'MountConfig.projectSlug' Error:Field validation for 'projectSlug' failed on the 'required' tag
+Key: 'MountConfig.envSlug' Error:Field validation for 'envSlug' failed on the 'required' tag
+Key: 'MountConfig.authSecretName' Error:Field validation for 'authSecretName' failed on the 'required' tag
+Key: 'MountConfig.authSecretNamespace' Error:Field validation for 'authSecretNamespace' failed on the 'required' tag
+```
+
+To be enabled:
+
+1. In "_Install Infisical secret proivder_" step, add the option `--set webhook.enable=true` when running `helm install`
+
 ## Usage
 1. Create a new Infisical client using [Universal Auth](https://infisical.com/docs/documentation/platform/identities/universal-auth)
 1. Store the Client ID and the Client Secret to a Kubernetes Secret as `client-id` key and `client-secret` key respectively
