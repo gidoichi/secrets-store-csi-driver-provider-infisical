@@ -34,13 +34,13 @@ resource "github_branch_protection" "default" {
     strict = true
     contexts = [
       "build-container",
-      "mount / e2e-test",
-      "sync / e2e-test",
-      "multiple / e2e-test",
-      "namespaced / e2e-test",
-      "namespaced-neg / e2e-test",
       "go-test",
       "terraform-plan",
+      "test-mount / mount / e2e-test",
+      "test-sync / sync / e2e-test",
+      "test-multiple / multiple / e2e-test",
+      "test-namespaced / namespaced / e2e-test",
+      "test-namespaced-neg / namespaced-neg / e2e-test",
       "updated-helm-chart-index",
       "validate-deployment",
       "validate-helm-chart",
