@@ -125,7 +125,7 @@ func (s *CSIProviderServer) Mount(ctx context.Context, req *v1alpha1.MountReques
 	}
 
 	// get secrets
-	infisicalClient := s.infisicalClientFactory.NewClient(infisical.Config{})
+	infisicalClient := s.infisicalClientFactory.NewClient(ctx, infisical.Config{})
 	if _, err := infisicalClient.UniversalAuthLogin(credentials.ID, credentials.Secret); err != nil {
 		mountResponse.Error.Code = ErrorUnauthorized
 		return mountResponse, fmt.Errorf("failed to login infisical, error: %w", err)

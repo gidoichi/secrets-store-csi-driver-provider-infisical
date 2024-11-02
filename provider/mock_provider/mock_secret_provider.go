@@ -10,12 +10,11 @@
 package mock_provider
 
 import (
+	context "context"
 	reflect "reflect"
 
 	provider "github.com/gidoichi/secrets-store-csi-driver-provider-infisical/provider"
 	infisical "github.com/infisical/go-sdk"
-	api "github.com/infisical/go-sdk/packages/api/auth"
-	models "github.com/infisical/go-sdk/packages/models"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -23,6 +22,7 @@ import (
 type MockInfisicalClientFactory struct {
 	ctrl     *gomock.Controller
 	recorder *MockInfisicalClientFactoryMockRecorder
+	isgomock struct{}
 }
 
 // MockInfisicalClientFactoryMockRecorder is the mock recorder for MockInfisicalClientFactory.
@@ -43,23 +43,24 @@ func (m *MockInfisicalClientFactory) EXPECT() *MockInfisicalClientFactoryMockRec
 }
 
 // NewClient mocks base method.
-func (m *MockInfisicalClientFactory) NewClient(config infisical.Config) provider.InfisicalClient {
+func (m *MockInfisicalClientFactory) NewClient(ctx context.Context, config infisical.Config) provider.InfisicalClient {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NewClient", config)
+	ret := m.ctrl.Call(m, "NewClient", ctx, config)
 	ret0, _ := ret[0].(provider.InfisicalClient)
 	return ret0
 }
 
 // NewClient indicates an expected call of NewClient.
-func (mr *MockInfisicalClientFactoryMockRecorder) NewClient(config any) *gomock.Call {
+func (mr *MockInfisicalClientFactoryMockRecorder) NewClient(ctx, config any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewClient", reflect.TypeOf((*MockInfisicalClientFactory)(nil).NewClient), config)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewClient", reflect.TypeOf((*MockInfisicalClientFactory)(nil).NewClient), ctx, config)
 }
 
 // MockInfisicalClient is a mock of InfisicalClient interface.
 type MockInfisicalClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockInfisicalClientMockRecorder
+	isgomock struct{}
 }
 
 // MockInfisicalClientMockRecorder is the mock recorder for MockInfisicalClient.
@@ -80,10 +81,10 @@ func (m *MockInfisicalClient) EXPECT() *MockInfisicalClientMockRecorder {
 }
 
 // ListSecrets mocks base method.
-func (m *MockInfisicalClient) ListSecrets(arg0 infisical.ListSecretsOptions) ([]models.Secret, error) {
+func (m *MockInfisicalClient) ListSecrets(arg0 infisical.ListSecretsOptions) ([]infisical.Secret, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListSecrets", arg0)
-	ret0, _ := ret[0].([]models.Secret)
+	ret0, _ := ret[0].([]infisical.Secret)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -95,10 +96,10 @@ func (mr *MockInfisicalClientMockRecorder) ListSecrets(arg0 any) *gomock.Call {
 }
 
 // UniversalAuthLogin mocks base method.
-func (m *MockInfisicalClient) UniversalAuthLogin(arg0, arg1 string) (api.MachineIdentityAuthLoginResponse, error) {
+func (m *MockInfisicalClient) UniversalAuthLogin(arg0, arg1 string) (infisical.MachineIdentityCredential, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UniversalAuthLogin", arg0, arg1)
-	ret0, _ := ret[0].(api.MachineIdentityAuthLoginResponse)
+	ret0, _ := ret[0].(infisical.MachineIdentityCredential)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
