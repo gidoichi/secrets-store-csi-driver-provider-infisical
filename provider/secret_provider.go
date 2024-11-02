@@ -2,6 +2,7 @@
 package provider
 
 import (
+	"context"
 	"fmt"
 	"path"
 	"regexp"
@@ -11,7 +12,7 @@ import (
 )
 
 type InfisicalClientFactory interface {
-	NewClient(config infisical.Config) InfisicalClient
+	NewClient(ctx context.Context, config infisical.Config) InfisicalClient
 }
 
 func NewInfisicalClientFactory() InfisicalClientFactory {
@@ -20,8 +21,8 @@ func NewInfisicalClientFactory() InfisicalClientFactory {
 
 type infisicalClientFactory struct{}
 
-func (f *infisicalClientFactory) NewClient(config infisical.Config) InfisicalClient {
-	return NewInfisicalClient(config)
+func (f *infisicalClientFactory) NewClient(ctx context.Context, config infisical.Config) InfisicalClient {
+	return NewInfisicalClient(ctx, config)
 }
 
 type InfisicalClient interface {
@@ -34,9 +35,9 @@ type infisicalClient struct {
 	auth   *infisical.MachineIdentityCredential
 }
 
-func NewInfisicalClient(config infisical.Config) InfisicalClient {
+func NewInfisicalClient(ctx context.Context, config infisical.Config) InfisicalClient {
 	return &infisicalClient{
-		client: infisical.NewInfisicalClient(config),
+		client: infisical.NewInfisicalClient(ctx, config),
 	}
 }
 

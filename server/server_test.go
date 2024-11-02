@@ -49,7 +49,7 @@ func TestCSIProviderServerMounts(t *testing.T) {
 			func(t *testing.T) {
 				// Given
 				mockAuth.EXPECT().TokenFromKubeSecret(ctx, idealKubeSecret).Return(idealCredentials, nil)
-				mockInfisicalClientFactory.EXPECT().NewClient(infisical.Config{}).Return(mockInfisicalClient)
+				mockInfisicalClientFactory.EXPECT().NewClient(ctx, infisical.Config{}).Return(mockInfisicalClient)
 				mockInfisicalClient.EXPECT().UniversalAuthLogin(idealCredentials.ID, idealCredentials.Secret)
 				mockInfisicalClient.EXPECT().ListSecrets(infisical.ListSecretsOptions{
 					ProjectSlug:            "test-project",
@@ -108,7 +108,7 @@ func TestCSIProviderServerMounts(t *testing.T) {
 			func(t *testing.T) {
 				// Given
 				mockAuth.EXPECT().TokenFromKubeSecret(ctx, idealKubeSecret).Return(idealCredentials, nil)
-				mockInfisicalClientFactory.EXPECT().NewClient(infisical.Config{}).Return(mockInfisicalClient)
+				mockInfisicalClientFactory.EXPECT().NewClient(ctx, infisical.Config{}).Return(mockInfisicalClient)
 				mockInfisicalClient.EXPECT().UniversalAuthLogin(idealCredentials.ID, idealCredentials.Secret)
 				mockInfisicalClient.EXPECT().ListSecrets(infisical.ListSecretsOptions{
 					ProjectSlug:            "test-project",
@@ -177,7 +177,7 @@ func TestCSIProviderServerMounts(t *testing.T) {
 			func(t *testing.T) {
 				// Given
 				mockAuth.EXPECT().TokenFromKubeSecret(ctx, idealKubeSecret).Return(idealCredentials, nil)
-				mockInfisicalClientFactory.EXPECT().NewClient(infisical.Config{}).Return(mockInfisicalClient)
+				mockInfisicalClientFactory.EXPECT().NewClient(ctx, infisical.Config{}).Return(mockInfisicalClient)
 				mockInfisicalClient.EXPECT().UniversalAuthLogin(idealCredentials.ID, idealCredentials.Secret)
 				mockInfisicalClient.EXPECT().ListSecrets(infisical.ListSecretsOptions{
 					ProjectSlug:            "test-project",
@@ -223,7 +223,7 @@ func TestCSIProviderServerMounts(t *testing.T) {
 			func(t *testing.T) {
 				// Given
 				mockAuth.EXPECT().TokenFromKubeSecret(ctx, idealKubeSecret).Return(idealCredentials, nil)
-				mockInfisicalClientFactory.EXPECT().NewClient(infisical.Config{}).Return(mockInfisicalClient)
+				mockInfisicalClientFactory.EXPECT().NewClient(ctx, infisical.Config{}).Return(mockInfisicalClient)
 				mockInfisicalClient.EXPECT().UniversalAuthLogin(idealCredentials.ID, idealCredentials.Secret)
 				mockInfisicalClient.EXPECT().ListSecrets(infisical.ListSecretsOptions{
 					ProjectSlug:            "test-project",
@@ -295,7 +295,7 @@ func TestCSIProviderServerMounts(t *testing.T) {
 			func(t *testing.T) {
 				// Given
 				mockAuth.EXPECT().TokenFromKubeSecret(ctx, idealKubeSecret).Return(idealCredentials, nil)
-				mockInfisicalClientFactory.EXPECT().NewClient(infisical.Config{}).Return(mockInfisicalClient)
+				mockInfisicalClientFactory.EXPECT().NewClient(ctx, infisical.Config{}).Return(mockInfisicalClient)
 				mockInfisicalClient.EXPECT().UniversalAuthLogin(idealCredentials.ID, idealCredentials.Secret)
 				mockInfisicalClient.EXPECT().ListSecrets(infisical.ListSecretsOptions{
 					ProjectSlug:            "test-project",
@@ -376,7 +376,7 @@ func TestCSIProviderServerMounts(t *testing.T) {
 			func(t *testing.T) {
 				// Given
 				mockAuth.EXPECT().TokenFromKubeSecret(ctx, idealKubeSecret).Return(idealCredentials, nil)
-				mockInfisicalClientFactory.EXPECT().NewClient(infisical.Config{}).Return(mockInfisicalClient)
+				mockInfisicalClientFactory.EXPECT().NewClient(ctx, infisical.Config{}).Return(mockInfisicalClient)
 				mockInfisicalClient.EXPECT().UniversalAuthLogin(idealCredentials.ID, idealCredentials.Secret).Return(api.MachineIdentityAuthLoginResponse{}, errors.New("failed to login"))
 
 				// When
@@ -397,7 +397,7 @@ func TestCSIProviderServerMounts(t *testing.T) {
 			func(t *testing.T) {
 				// Given
 				mockAuth.EXPECT().TokenFromKubeSecret(ctx, idealKubeSecret).Return(idealCredentials, nil)
-				mockInfisicalClientFactory.EXPECT().NewClient(infisical.Config{}).Return(mockInfisicalClient)
+				mockInfisicalClientFactory.EXPECT().NewClient(ctx, infisical.Config{}).Return(mockInfisicalClient)
 				mockInfisicalClient.EXPECT().UniversalAuthLogin(idealCredentials.ID, idealCredentials.Secret).Return(api.MachineIdentityAuthLoginResponse{}, nil)
 				mockInfisicalClient.EXPECT().ListSecrets(infisical.ListSecretsOptions{
 					ProjectSlug:            "test-project",
