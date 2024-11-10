@@ -54,7 +54,7 @@
       "groupName": "dependencies",
       "recreateWhen": "always",
       "matchPackageNames": [
-        "/.*/"
+        "*"
       ]
     }
   ]
