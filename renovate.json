@@ -4,31 +4,47 @@
     "config:recommended"
   ],
   "branchConcurrentLimit": 0,
-  "labels": ["dependencies"],
+  "labels": [
+    "dependencies"
+  ],
   "schedule": "* * 1-7 * 6",
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": ["^\\.github/workflows/.*\\.yml$"],
-      "matchStrings": ["helm repo add \\S* (?<registryUrl>\\S+?)\\s+helm install .*/(?<depName>.*?) --version (?<currentValue>\\S+)"],
+      "fileMatch": [
+        "^\\.github/workflows/.*\\.yml$"
+      ],
+      "matchStrings": [
+        "helm repo add \\S* (?<registryUrl>\\S+?)\\s+helm install .*/(?<depName>.*?) --version (?<currentValue>\\S+)"
+      ],
       "datasourceTemplate": "helm"
     },
     {
       "customType": "regex",
-      "fileMatch": ["^\\.github/workflows/.*\\.yml$"],
-      "matchStrings": ["# renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?) versioning=(?<versioning>.*?)\\s+\\S+: (?<currentValue>\\S+)"],
+      "fileMatch": [
+        "^\\.github/workflows/.*\\.yml$"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?) versioning=(?<versioning>.*?)\\s+\\S+: (?<currentValue>\\S+)"
+      ],
       "versioningTemplate": "{{{versioning}}}"
     },
     {
       "customType": "regex",
-      "fileMatch": ["^\\.github/workflows/.*\\.yml$"],
-      "matchStrings": ["image: (?<depName>.*?):(?<currentValue>.*)\\s"],
+      "fileMatch": [
+        "^\\.github/workflows/.*\\.yml$"
+      ],
+      "matchStrings": [
+        "image: (?<depName>.*?):(?<currentValue>.*)\\s"
+      ],
       "datasourceTemplate": "docker"
     }
   ],
   "packageRules": [
     {
-      "matchManagers": ["gomod"],
+      "matchManagers": [
+        "gomod"
+      ],
       "matchPackageNames": [
         "github.com/gidoichi/secrets-store-csi-driver-provider-infisical"
       ],
@@ -36,8 +52,10 @@
     },
     {
       "groupName": "dependencies",
-      "matchPackagePatterns": [".*"],
-      "recreateWhen": "always"
+      "recreateWhen": "always",
+      "matchPackageNames": [
+        "*"
+      ]
     }
   ]
 }
