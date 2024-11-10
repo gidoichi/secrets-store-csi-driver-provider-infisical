@@ -127,7 +127,7 @@ rm "secrets-store-csi-driver-provider-infisical-$PROVIDER_VERSION.tgz"
 cd -
 
 # update deployment/
-helm template --namespace kube-system --skip-tests secrets-store-csi-driver-provider-infisical charts/secrets-store-csi-driver-provider-infisical | grep -v -e '^ *helm\.sh/chart: ' -e '^ *app.kubernetes.io/managed-by: Helm$' -e '^# Source: ' >| deployment/infisical-csi-provider.yaml
+helm template --namespace kube-system --skip-tests secrets-store-csi-driver-provider-infisical charts/secrets-store-csi-driver-provider-infisical | grep -v -e '^ *helm\.sh/chart: ' -e '^ *app.kubernetes.io/managed-by: Helm$' -e '^# Source: ' > deployment/infisical-csi-provider.yaml
 ```
 
 After being merged into the default branch, the Git tag is pushed and the Helm package is uploaded automatically.
