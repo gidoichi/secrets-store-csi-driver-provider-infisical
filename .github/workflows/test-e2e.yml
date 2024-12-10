@@ -53,7 +53,7 @@ jobs:
       - uses: mig4/setup-bats@v1
         with:
           # renovate: datasource=github-tags depName=bats-core/bats-core versioning=semver
-          bats-version: 1.11.0
+          bats-version: 1.11.1
       - uses: engineerd/setup-kind@v0.5.0
         with:
           # renovate: datasource=github-tags depName=kubernetes-sigs/kind versioning=semver
@@ -70,7 +70,7 @@ jobs:
           TYPE: ${{ inputs.type }}
         run: |
           helm repo add secrets-store-csi-driver https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
-          helm install secrets-store-csi-driver secrets-store-csi-driver/secrets-store-csi-driver --version 1.4.6 --set syncSecret.enabled=true
+          helm install secrets-store-csi-driver secrets-store-csi-driver/secrets-store-csi-driver --version 1.4.7 --set syncSecret.enabled=true
           if [ -z "$TYPE" ]; then
             make e2e
           else
