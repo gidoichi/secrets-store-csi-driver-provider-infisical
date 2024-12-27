@@ -3,6 +3,54 @@ on:
   workflow_dispatch:
   pull_request:
 jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # settings for `actions-js/push`
+          persist-credentials: false
+          fetch-depth: 0
+      - working-directory: admission-webhook
+        run: go mod tidy
+      - name: Get the latest tag
+        id: latest-tag
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          dry_run: "true"
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
+      - name: Increment version
+        run: |
+          set -eux
+
+          export PROVIDER_VERSION="${{ steps.latest-tag.outputs.new_version }}"
+          OLD_PROVIDER_VERSION=$(sed --quiet 's/.*runtimeVersion = "\([.0-9]*\)"/\1/p' main.go)
+          if [ "$PROVIDER_VERSION" = "$OLD_PROVIDER_VERSION" ]; then
+            exit 0
+          fi
+
+          # update main.go
+          sed -i 's/\(runtimeVersion = \)"[.0-9]*"/\1"'"$PROVIDER_VERSION"'"/' main.go
+
+          # update charts/
+          yq -i 'strenv(PROVIDER_VERSION) as $v | .appVersion = $v | .version = $v' charts/secrets-store-csi-driver-provider-infisical/Chart.yaml
+          cd charts
+          helm package secrets-store-csi-driver-provider-infisical
+          for file in *.tgz; do mv "$file" "chart-$file"; done
+          helm repo index . --merge index.yaml --url "https://github.com/gidoichi/secrets-store-csi-driver-provider-infisical/releases/download/v${PROVIDER_VERSION}/"
+          for file in *.tgz; do rm "$file"; done
+          cd -
+
+          # update deployment/
+          helm template --namespace kube-system --skip-tests secrets-store-csi-driver-provider-infisical charts/secrets-store-csi-driver-provider-infisical | grep -v -e '^ *helm\.sh/chart: ' -e '^ *app.kubernetes.io/managed-by: Helm$' -e '^# Source: ' > deployment/infisical-csi-provider.yaml
+      - name: Commit & push changes
+        uses: actions-js/push@master
+        with:
+          github_token: "${{ secrets.GH_PAT }}"
+          branch: "${{ github.head_ref }}"
+
   publish-pr:
     uses: ./.github/workflows/publish-pr.yml
     secrets: inherit

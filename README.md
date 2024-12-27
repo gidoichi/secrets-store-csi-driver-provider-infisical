@@ -103,31 +103,3 @@ The following are tested scenarios as part of CI. More detailed descriptions of 
 [filtered-ci]: https://github.com/gidoichi/secrets-store-csi-driver-provider-infisical/actions/workflows/test-filtered.yml?query=branch%3Amain
 [windows-badge]: https://github.com/gidoichi/secrets-store-csi-driver-provider-infisical/actions/workflows/test-windows.yml/badge.svg?branch=main
 [windows-ci]: https://github.com/gidoichi/secrets-store-csi-driver-provider-infisical/actions/workflows/test-windows.yml?query=branch%3Amain
-
-## Develop
-
-### Increment version
-
-The tag on Git is automatically updated using `runtimeVersion` in /main.go. The following TODOs are required to increment the version:
-
-```sh
-# CHANGEME: set version
-export PROVIDER_VERSION=1.0.0
-
-# update main.go
-sed -i 's/\(runtimeVersion = \)"[.0-9]*"/\1"'"$PROVIDER_VERSION"'"/' main.go
-
-# update charts/
-yq -i 'strenv(PROVIDER_VERSION) as $v | .appVersion = $v | .version = $v' charts/secrets-store-csi-driver-provider-infisical/Chart.yaml
-cd charts
-helm package secrets-store-csi-driver-provider-infisical
-for file in *.tgz; do mv "$file" "chart-$file"; done
-helm repo index . --merge index.yaml --url "https://github.com/gidoichi/secrets-store-csi-driver-provider-infisical/releases/download/v${PROVIDER_VERSION}/"
-rm "secrets-store-csi-driver-provider-infisical-$PROVIDER_VERSION.tgz"
-cd -
-
-# update deployment/
-helm template --namespace kube-system --skip-tests secrets-store-csi-driver-provider-infisical charts/secrets-store-csi-driver-provider-infisical | grep -v -e '^ *helm\.sh/chart: ' -e '^ *app.kubernetes.io/managed-by: Helm$' -e '^# Source: ' > deployment/infisical-csi-provider.yaml
-```
-
-After being merged into the default branch, the Git tag is pushed and the Helm package is uploaded automatically.
