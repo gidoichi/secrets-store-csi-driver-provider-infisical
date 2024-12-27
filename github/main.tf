@@ -41,6 +41,7 @@ resource "github_branch_protection" "default" {
       "test-multiple / multiple / e2e-test",
       "test-namespaced / namespaced / e2e-test",
       "test-namespaced-neg / namespaced-neg / e2e-test",
+      "update",
       "updated-helm-chart-index",
       "validate-deployment",
       "validate-helm-chart",
