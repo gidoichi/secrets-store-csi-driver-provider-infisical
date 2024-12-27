@@ -2,17 +2,17 @@ module github.com/gidoichi/secrets-store-csi-driver-provider-infisical/admission
 
 go 1.23.0
 
-toolchain go1.23.3
+toolchain go1.23.4
 
 require (
 	github.com/gidoichi/secrets-store-csi-driver-provider-infisical v0.0.0
-	github.com/go-playground/validator/v10 v10.22.1
+	github.com/go-playground/validator/v10 v10.23.0
 	github.com/prometheus/client_golang v1.20.5
 	github.com/sirupsen/logrus v1.9.3
 	github.com/slok/kubewebhook/v2 v2.7.0
-	k8s.io/api v0.31.2
-	k8s.io/apimachinery v0.31.2
-	sigs.k8s.io/secrets-store-csi-driver v1.4.6
+	k8s.io/api v0.32.0
+	k8s.io/apimachinery v0.32.0
+	sigs.k8s.io/secrets-store-csi-driver v1.4.7
 )
 
 require (
