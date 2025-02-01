@@ -76,7 +76,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Match provider version
-        uses: mikefarah/yq@v4.44.6
+        uses: mikefarah/yq@v4.45.1
         env:
           PROVIDER_VERSION: ${{ needs.go-test.outputs.version }}
         with:
