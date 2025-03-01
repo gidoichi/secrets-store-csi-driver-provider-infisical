@@ -2,18 +2,18 @@ module github.com/gidoichi/secrets-store-csi-driver-provider-infisical
 
 go 1.23.0
 
-toolchain go1.23.5
+toolchain go1.24.0
 
 require (
-	github.com/go-playground/validator/v10 v10.24.0
-	github.com/infisical/go-sdk v0.4.7
+	github.com/go-playground/validator/v10 v10.25.0
+	github.com/infisical/go-sdk v0.5.0
 	go.uber.org/mock v0.5.0
 	go.uber.org/thriftrw v1.32.0
-	golang.org/x/mod v0.22.0
+	golang.org/x/mod v0.23.0
 	google.golang.org/grpc v1.70.0
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/apimachinery v0.32.1
-	k8s.io/client-go v0.32.1
+	k8s.io/apimachinery v0.32.2
+	k8s.io/client-go v0.32.2
 	sigs.k8s.io/secrets-store-csi-driver v1.4.8
 )
 
@@ -58,6 +58,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.5 // indirect
+	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
@@ -88,7 +89,7 @@ require (
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	k8s.io/api v0.32.1 // indirect
+	k8s.io/api v0.32.2 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20241105132330-32ad38e42d3f // indirect
 	k8s.io/utils v0.0.0-20241104100929-3ea5e8cea738 // indirect
@@ -97,6 +98,6 @@ require (
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
 
-replace github.com/Infisical/infisical-merge => github.com/Infisical/infisical/cli v0.0.0-20250131233340-ccee0f5428df
+replace github.com/Infisical/infisical-merge => github.com/Infisical/infisical/cli v0.0.0-20250301002645-ea7375b2c682
 
 replace github.com/zalando/go-keyring => github.com/Infisical/go-keyring v1.0.2
