@@ -15,8 +15,11 @@ jobs:
         with:
           username: gidoichi
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
       - uses: docker/build-push-action@v6
         id: docker
         with:
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ github.repository }}:latest
