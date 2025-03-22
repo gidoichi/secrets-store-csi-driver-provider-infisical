@@ -39,7 +39,7 @@ func TestSecretProviderClassWebhookValidates(t *testing.T) {
 					t.Errorf("unexpected error: %s", err)
 				}
 				if !result.Valid {
-					t.Errorf("expected valid, got invalid")
+					t.Errorf("expected valid, got invalid: %s", result.Message)
 				}
 			},
 		},
@@ -61,7 +61,7 @@ func TestSecretProviderClassWebhookValidates(t *testing.T) {
 					t.Errorf("unexpected error: %s", err)
 				}
 				if !result.Valid {
-					t.Errorf("expected valid, got invalid")
+					t.Errorf("expected valid, got invalid: %s", result.Message)
 				}
 			},
 		},
@@ -77,6 +77,18 @@ func TestSecretProviderClassWebhookValidates(t *testing.T) {
 							"envSlug":             "env",
 							"authSecretName":      "auth-secret",
 							"authSecretNamespace": "default",
+							"objects":             `[{"objectName":"secret1","objectAlias":"secret1-alias"}]`,
+						},
+						SecretObjects: []*secretstorecsidriverv1.SecretObject{
+							{
+								SecretName: "test-secret",
+								Data: []*secretstorecsidriverv1.SecretObjectData{
+									{
+										ObjectName: "secret1-alias",
+										Key:        "key1",
+									},
+								},
+							},
 						},
 					},
 				}
@@ -89,7 +101,7 @@ func TestSecretProviderClassWebhookValidates(t *testing.T) {
 					t.Errorf("unexpected error: %s", err)
 				}
 				if !result.Valid {
-					t.Errorf("expected valid, got invalid")
+					t.Errorf("expected valid, got invalid: %s", result.Message)
 				}
 			},
 		},

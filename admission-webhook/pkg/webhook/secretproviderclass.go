@@ -89,7 +89,11 @@ func (w *secretProviderClassWebhook) Validate(_ context.Context, _ *kwhmodel.Adm
 
 	var objectNames []string
 	for _, object := range objects {
-		objectNames = append(objectNames, object.Name)
+		if object.Alias != "" {
+			objectNames = append(objectNames, object.Alias)
+		} else {
+			objectNames = append(objectNames, object.Name)
+		}
 	}
 	var errs error
 	for sindex, secretObject := range spc.Spec.SecretObjects {
