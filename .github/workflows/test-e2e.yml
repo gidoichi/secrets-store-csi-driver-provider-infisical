@@ -58,7 +58,7 @@ jobs:
         with:
           # renovate: datasource=github-tags depName=kubernetes-sigs/kind versioning=semver
           version: v0.27.0
-          image: kindest/node:v1.32.2
+          image: kindest/node:v1.32.3
       - name: Test
         env:
           CLIENT_ID: ${{ secrets.E2E_CLIENT_ID }}
