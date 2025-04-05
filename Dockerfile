@@ -1,11 +1,11 @@
-FROM golang:1.24.0-alpine AS builder
+FROM golang:1.24.2-alpine AS builder
 WORKDIR /usr/src/app
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify
 COPY . .
 RUN go build -v -o /usr/local/bin/app .
 
-FROM golang:1.24.0-alpine AS admission-webhook
+FROM golang:1.24.2-alpine AS admission-webhook
 WORKDIR /usr/src/app
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify
