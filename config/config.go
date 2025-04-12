@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
-	"gopkg.in/yaml.v3"
+	"github.com/goccy/go-yaml"
 )
 
 type MountConfig struct {
@@ -73,8 +73,7 @@ func (a *MountConfig) Objects() ([]object, error) {
 	}
 
 	var objects []object
-	objectDecoder := yaml.NewDecoder(strings.NewReader(*a.RawObjects))
-	objectDecoder.KnownFields(true)
+	objectDecoder := yaml.NewDecoder(strings.NewReader(*a.RawObjects), yaml.DisallowUnknownField())
 	// Decode returns io.EOF error when empty string is passed
 	// c.f. https://github.com/go-yaml/yaml/blob/v3.0.1/yaml.go#L123-L126
 	if err := objectDecoder.Decode(&objects); err != nil && !errors.Is(err, io.EOF) {

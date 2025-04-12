@@ -6,12 +6,12 @@ toolchain go1.24.2
 
 require (
 	github.com/go-playground/validator/v10 v10.26.0
+	github.com/goccy/go-yaml v1.17.1
 	github.com/infisical/go-sdk v0.5.1
 	go.uber.org/mock v0.5.0
 	go.uber.org/thriftrw v1.32.0
 	golang.org/x/mod v0.24.0
 	google.golang.org/grpc v1.71.1
-	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/apimachinery v0.32.3
 	k8s.io/client-go v0.32.3
 	sigs.k8s.io/secrets-store-csi-driver v1.4.8
@@ -89,7 +89,7 @@ require (
 	google.golang.org/protobuf v1.36.4 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/api v0.32.3 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20241105132330-32ad38e42d3f // indirect
