@@ -2,6 +2,16 @@ apiVersion: v1
 entries:
   secrets-store-csi-driver-provider-infisical:
   - apiVersion: v2
+    appVersion: 1.0.11
+    created: "2025-05-03T07:08:12.814397973Z"
+    description: A Helm chart for Infisical provider
+    digest: 1b32d9b8dd5c142d0a3ba905366c9033e2a5351fce094c76aa4de8784a556e40
+    name: secrets-store-csi-driver-provider-infisical
+    type: application
+    urls:
+    - https://github.com/gidoichi/secrets-store-csi-driver-provider-infisical/releases/download/v1.0.11/chart-secrets-store-csi-driver-provider-infisical-1.0.11.tgz
+    version: 1.0.11
+  - apiVersion: v2
     appVersion: 1.0.10
     created: "2025-05-03T03:01:27.736387358Z"
     description: A Helm chart for Infisical provider
@@ -171,4 +181,4 @@ entries:
     urls:
     - https://github.com/gidoichi/secrets-store-csi-driver-provider-infisical/releases/download/v0.1.1/chart-secrets-store-csi-driver-provider-infisical-0.1.0.tgz
     version: 0.1.0
-generated: "2025-05-03T03:01:27.735827252Z"
+generated: "2025-05-03T07:08:12.813706386Z"
