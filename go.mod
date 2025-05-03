@@ -100,6 +100,6 @@ require (
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
 
-replace github.com/Infisical/infisical-merge => github.com/Infisical/infisical/cli v0.0.0-20250502003118-1f3e7da3b71f
+replace github.com/Infisical/infisical-merge => github.com/Infisical/infisical/cli v0.0.0-20250502204645-d1122886fd8d
 
 replace github.com/zalando/go-keyring => github.com/Infisical/go-keyring v1.0.2
