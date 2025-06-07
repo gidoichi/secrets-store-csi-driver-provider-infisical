@@ -2,19 +2,19 @@ module github.com/gidoichi/secrets-store-csi-driver-provider-infisical
 
 go 1.24.0
 
-toolchain go1.24.2
+toolchain go1.24.4
 
 require (
 	github.com/go-playground/validator/v10 v10.26.0
-	github.com/goccy/go-yaml v1.17.1
-	github.com/infisical/go-sdk v0.5.92
+	github.com/goccy/go-yaml v1.18.0
+	github.com/infisical/go-sdk v0.5.95
 	go.uber.org/mock v0.5.2
 	go.uber.org/thriftrw v1.32.0
-	golang.org/x/mod v0.24.0
-	google.golang.org/grpc v1.72.0
-	k8s.io/apimachinery v0.33.0
-	k8s.io/client-go v0.33.0
-	sigs.k8s.io/secrets-store-csi-driver v1.5.0
+	golang.org/x/mod v0.25.0
+	google.golang.org/grpc v1.73.0
+	k8s.io/apimachinery v0.33.1
+	k8s.io/client-go v0.33.1
+	sigs.k8s.io/secrets-store-csi-driver v1.5.1
 )
 
 require (
@@ -72,25 +72,25 @@ require (
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.49.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.49.0 // indirect
-	go.opentelemetry.io/otel v1.34.0 // indirect
-	go.opentelemetry.io/otel/metric v1.34.0 // indirect
-	go.opentelemetry.io/otel/trace v1.34.0 // indirect
+	go.opentelemetry.io/otel v1.35.0 // indirect
+	go.opentelemetry.io/otel/metric v1.35.0 // indirect
+	go.opentelemetry.io/otel/trace v1.35.0 // indirect
 	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/net v0.38.0 // indirect
-	golang.org/x/oauth2 v0.27.0 // indirect
+	golang.org/x/oauth2 v0.28.0 // indirect
 	golang.org/x/sync v0.12.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/term v0.30.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
 	golang.org/x/time v0.9.0 // indirect
 	google.golang.org/api v0.188.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20250218202821-56aae31c358a // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250218202821-56aae31c358a // indirect
-	google.golang.org/protobuf v1.36.5 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20250324211829-b45e905df463 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250324211829-b45e905df463 // indirect
+	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/api v0.33.0 // indirect
+	k8s.io/api v0.33.1 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20250318190949-c8a335a9a2ff // indirect
 	k8s.io/utils v0.0.0-20241104100929-3ea5e8cea738 // indirect
@@ -100,6 +100,6 @@ require (
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
 
-replace github.com/Infisical/infisical-merge => github.com/Infisical/infisical/cli v0.0.0-20250502204645-d1122886fd8d
+replace github.com/Infisical/infisical-merge => github.com/Infisical/infisical/cli v0.0.0-20250606213050-f8c822eda7e8
 
 replace github.com/zalando/go-keyring => github.com/Infisical/go-keyring v1.0.2
