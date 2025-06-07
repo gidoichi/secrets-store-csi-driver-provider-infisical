@@ -3,7 +3,7 @@
   "additionalProperties": false,
   "properties": {
     "affinity": {
-      "additionalProperties": false,
+      "additionalProperties": true,
       "required": [],
       "title": "affinity",
       "type": "object"
@@ -12,7 +12,7 @@
       "additionalProperties": false,
       "properties": {
         "annotations": {
-          "additionalProperties": false,
+          "additionalProperties": true,
           "description": "Annotations to add to the cluster role",
           "required": [],
           "title": "annotations",
@@ -37,7 +37,7 @@
       "additionalProperties": false,
       "properties": {
         "annotations": {
-          "additionalProperties": false,
+          "additionalProperties": true,
           "description": "Annotations to add to the cluster role binding",
           "required": [],
           "title": "annotations",
@@ -116,37 +116,37 @@
       "type": "string"
     },
     "nodeSelector": {
-      "additionalProperties": false,
+      "additionalProperties": true,
       "required": [],
       "title": "nodeSelector",
       "type": "object"
     },
     "podAnnotations": {
-      "additionalProperties": false,
+      "additionalProperties": true,
       "required": [],
       "title": "podAnnotations",
       "type": "object"
     },
     "podLabels": {
-      "additionalProperties": false,
+      "additionalProperties": true,
       "required": [],
       "title": "podLabels",
       "type": "object"
     },
     "podSecurityContext": {
-      "additionalProperties": false,
+      "additionalProperties": true,
       "required": [],
       "title": "podSecurityContext",
       "type": "object"
     },
     "resources": {
-      "additionalProperties": false,
+      "additionalProperties": true,
       "required": [],
       "title": "resources",
       "type": "object"
     },
     "securityContext": {
-      "additionalProperties": false,
+      "additionalProperties": true,
       "required": [],
       "title": "securityContext",
       "type": "object"
@@ -155,7 +155,7 @@
       "additionalProperties": false,
       "properties": {
         "annotations": {
-          "additionalProperties": false,
+          "additionalProperties": true,
           "description": "Annotations to add to the service account",
           "required": [],
           "title": "annotations",
@@ -196,7 +196,7 @@
       "additionalProperties": false,
       "properties": {
         "affinity": {
-          "additionalProperties": false,
+          "additionalProperties": true,
           "required": [],
           "title": "affinity",
           "type": "object"
@@ -275,14 +275,13 @@
           "type": "object"
         },
         "nodeSelector": {
-          "additionalProperties": false,
-          "description": "limits:\n  cpu: 500m\n  memory: 128Mi\nrequests:\n  cpu: 10m\n  memory: 64Mi",
+          "additionalProperties": true,
           "required": [],
           "title": "nodeSelector",
           "type": "object"
         },
         "resources": {
-          "additionalProperties": false,
+          "additionalProperties": true,
           "required": [],
           "title": "resources",
           "type": "object"
