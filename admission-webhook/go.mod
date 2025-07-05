@@ -6,13 +6,13 @@ toolchain go1.24.4
 
 require (
 	github.com/gidoichi/secrets-store-csi-driver-provider-infisical v0.0.0
-	github.com/go-playground/validator/v10 v10.26.0
+	github.com/go-playground/validator/v10 v10.27.0
 	github.com/prometheus/client_golang v1.22.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/slok/kubewebhook/v2 v2.7.0
-	k8s.io/api v0.33.1
-	k8s.io/apimachinery v0.33.1
-	sigs.k8s.io/secrets-store-csi-driver v1.5.1
+	k8s.io/api v0.33.2
+	k8s.io/apimachinery v0.33.2
+	sigs.k8s.io/secrets-store-csi-driver v1.5.2
 )
 
 require (
@@ -41,7 +41,7 @@ require (
 	golang.org/x/text v0.23.0 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
-	k8s.io/client-go v0.33.1 // indirect
+	k8s.io/client-go v0.33.2 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/utils v0.0.0-20241104100929-3ea5e8cea738 // indirect
 	sigs.k8s.io/json v0.0.0-20241010143419-9aa6b5e7a4b3 // indirect
