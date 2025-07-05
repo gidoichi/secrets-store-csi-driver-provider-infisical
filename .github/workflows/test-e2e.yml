@@ -70,7 +70,7 @@ jobs:
           TYPE: ${{ inputs.type }}
         run: |
           helm repo add secrets-store-csi-driver https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
-          helm install secrets-store-csi-driver secrets-store-csi-driver/secrets-store-csi-driver --version 1.5.1 --set syncSecret.enabled=true
+          helm install secrets-store-csi-driver secrets-store-csi-driver/secrets-store-csi-driver --version 1.5.2 --set syncSecret.enabled=true
           if [ -z "$TYPE" ]; then
             make e2e
           else

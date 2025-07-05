@@ -5,16 +5,16 @@ go 1.24.0
 toolchain go1.24.4
 
 require (
-	github.com/go-playground/validator/v10 v10.26.0
+	github.com/go-playground/validator/v10 v10.27.0
 	github.com/goccy/go-yaml v1.18.0
-	github.com/infisical/go-sdk v0.5.95
+	github.com/infisical/go-sdk v0.5.97
 	go.uber.org/mock v0.5.2
 	go.uber.org/thriftrw v1.32.0
 	golang.org/x/mod v0.25.0
 	google.golang.org/grpc v1.73.0
-	k8s.io/apimachinery v0.33.1
-	k8s.io/client-go v0.33.1
-	sigs.k8s.io/secrets-store-csi-driver v1.5.1
+	k8s.io/apimachinery v0.33.2
+	k8s.io/client-go v0.33.2
+	sigs.k8s.io/secrets-store-csi-driver v1.5.2
 )
 
 require (
@@ -90,7 +90,7 @@ require (
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/api v0.33.1 // indirect
+	k8s.io/api v0.33.2 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20250318190949-c8a335a9a2ff // indirect
 	k8s.io/utils v0.0.0-20241104100929-3ea5e8cea738 // indirect
@@ -100,6 +100,6 @@ require (
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
 
-replace github.com/Infisical/infisical-merge => github.com/Infisical/infisical/cli v0.0.0-20250606213050-f8c822eda7e8
+replace github.com/Infisical/infisical-merge => github.com/Infisical/infisical/cli v0.0.0-20250704013352-06f5af12009c
 
 replace github.com/zalando/go-keyring => github.com/Infisical/go-keyring v1.0.2
