@@ -12,19 +12,19 @@ jobs:
       value: v${{ steps.version.outputs.runtime }}
       pushed: ${{ steps.exists.outputs.exists == 'false' }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
       - name: Get runtime version
         id: version
         run: printf 'runtime=%s' "$(go run main.go --version)" >> "$GITHUB_OUTPUT"
-      - uses: mukunku/tag-exists-action@bdad1eaa119ce71b150b952c97351c75025c06a9 # v1.6.0
+      - uses: mukunku/tag-exists-action@v1.6.0
         id: exists
         with:
           tag: v${{ steps.version.outputs.runtime }}
       - name: Push tag
-        uses: mathieudutour/github-tag-action@a22cf08638b34d5badda920f9daf6e72c477b07b # v6.2
+        uses: mathieudutour/github-tag-action@v6.2
         with:
           custom_tag: ${{ steps.version.outputs.runtime }}
           github_token: ${{ secrets.GITHUB_TOKEN }}

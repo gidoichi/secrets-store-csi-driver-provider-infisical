@@ -6,7 +6,7 @@ image:
   repository: gidoichi/secrets-store-csi-driver-provider-infisical
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "@sha256:d373e5eded2ba352738682a34500be0670b359522a9e315ca38335cfb51dc3b9"
+  tag: ""
 
 imagePullSecrets: []
 nameOverride: ""
