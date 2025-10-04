@@ -1,6 +1,6 @@
 module github.com/gidoichi/secrets-store-csi-driver-provider-infisical/admission-webhook
 
-go 1.24.0
+go 1.24.7
 
 toolchain go1.25.1
 
@@ -10,9 +10,9 @@ require (
 	github.com/prometheus/client_golang v1.23.2
 	github.com/sirupsen/logrus v1.9.3
 	github.com/slok/kubewebhook/v2 v2.7.0
-	k8s.io/api v0.34.0
-	k8s.io/apimachinery v0.34.0
-	sigs.k8s.io/secrets-store-csi-driver v1.5.3
+	k8s.io/api v0.34.1
+	k8s.io/apimachinery v0.34.1
+	sigs.k8s.io/secrets-store-csi-driver v1.5.4
 )
 
 require (
