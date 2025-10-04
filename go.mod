@@ -1,6 +1,6 @@
 module github.com/gidoichi/secrets-store-csi-driver-provider-infisical
 
-go 1.24.0
+go 1.24.7
 
 toolchain go1.25.1
 
@@ -10,11 +10,11 @@ require (
 	github.com/infisical/go-sdk v0.5.100
 	go.uber.org/mock v0.6.0
 	go.uber.org/thriftrw v1.33.0
-	golang.org/x/mod v0.27.0
-	google.golang.org/grpc v1.75.0
-	k8s.io/apimachinery v0.34.0
-	k8s.io/client-go v0.34.0
-	sigs.k8s.io/secrets-store-csi-driver v1.5.3
+	golang.org/x/mod v0.28.0
+	google.golang.org/grpc v1.75.1
+	k8s.io/apimachinery v0.34.1
+	k8s.io/client-go v0.34.1
+	sigs.k8s.io/secrets-store-csi-driver v1.5.4
 )
 
 require (
@@ -96,7 +96,7 @@ require (
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/api v0.34.0 // indirect
+	k8s.io/api v0.34.1 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20250710124328-f3f2b991d03b // indirect
 	k8s.io/utils v0.0.0-20250604170112-4c0f3b243397 // indirect
@@ -107,6 +107,6 @@ require (
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
-replace github.com/Infisical/infisical-merge => github.com/Infisical/infisical/cli v0.148.0
+replace github.com/Infisical/infisical-merge => github.com/Infisical/infisical/cli v0.149.0
 
 replace github.com/zalando/go-keyring => github.com/Infisical/go-keyring v1.0.2
