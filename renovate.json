@@ -57,7 +57,10 @@
       "matchPackageNames": [
         "*"
       ],
-      "automerge": true
+      "automerge": true,
+      "addLabels": [
+        "automerge"
+      ]
     }
   ]
 }
