@@ -2,7 +2,7 @@ module github.com/gidoichi/secrets-store-csi-driver-provider-infisical/admission
 
 go 1.24.7
 
-toolchain go1.25.1
+toolchain go1.25.3
 
 require (
 	github.com/gidoichi/secrets-store-csi-driver-provider-infisical v0.0.0
