@@ -6,7 +6,7 @@ jobs:
   build-container:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: docker/build-push-action@v6
         with:
           push: false
@@ -16,7 +16,7 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.runtime }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
@@ -39,7 +39,7 @@ jobs:
   terraform-plan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false
@@ -54,7 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: go-test
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: azure/setup-helm@v4
       - name: Diff charts/index.yaml
         working-directory: charts
@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: go-test
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Match provider version
         uses: mikefarah/yq@v4.49.2
         env:
@@ -87,7 +87,7 @@ jobs:
   validate-deployment:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: azure/setup-helm@v4.3.1
       - name: Update kuberenetes manifest
         run: |
