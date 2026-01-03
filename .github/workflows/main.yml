@@ -19,7 +19,7 @@ jobs:
       - name: Get runtime version
         id: version
         run: printf 'runtime=%s' "$(go run main.go --version)" >> "$GITHUB_OUTPUT"
-      - uses: mukunku/tag-exists-action@v1.6.0
+      - uses: mukunku/tag-exists-action@v1.7.0
         id: exists
         with:
           tag: v${{ steps.version.outputs.runtime }}
