@@ -57,8 +57,8 @@ jobs:
       - uses: engineerd/setup-kind@v0.5.0
         with:
           # renovate: datasource=github-tags depName=kubernetes-sigs/kind versioning=semver
-          version: v0.30.0
-          image: kindest/node:v1.34.0
+          version: v0.31.0
+          image: kindest/node:v1.35.0
       - name: Test
         env:
           CLIENT_ID: ${{ secrets.E2E_CLIENT_ID }}
@@ -70,7 +70,7 @@ jobs:
           TYPE: ${{ inputs.type }}
         run: |
           helm repo add secrets-store-csi-driver https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
-          helm install secrets-store-csi-driver secrets-store-csi-driver/secrets-store-csi-driver --version 1.5.4 --set syncSecret.enabled=true
+          helm install secrets-store-csi-driver secrets-store-csi-driver/secrets-store-csi-driver --version 1.5.5 --set syncSecret.enabled=true
           if [ -z "$TYPE" ]; then
             make e2e
           else
