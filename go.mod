@@ -2,15 +2,15 @@ module github.com/gidoichi/secrets-store-csi-driver-provider-infisical
 
 go 1.25.0
 
-toolchain go1.25.5
+toolchain go1.25.7
 
 require (
 	github.com/go-playground/validator/v10 v10.30.1
-	github.com/goccy/go-yaml v1.19.1
-	github.com/infisical/go-sdk v0.6.3
+	github.com/goccy/go-yaml v1.19.2
+	github.com/infisical/go-sdk v0.6.8
 	go.uber.org/mock v0.6.0
-	go.uber.org/thriftrw v1.33.0
-	golang.org/x/mod v0.31.0
+	go.uber.org/thriftrw v1.34.0
+	golang.org/x/mod v0.32.0
 	google.golang.org/grpc v1.78.0
 	k8s.io/apimachinery v0.35.0
 	k8s.io/client-go v0.35.0
@@ -105,6 +105,6 @@ require (
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
-replace github.com/Infisical/infisical-merge => github.com/Infisical/infisical/cli v0.154.6
+replace github.com/Infisical/infisical-merge => github.com/Infisical/infisical/cli v0.158.1
 
 replace github.com/zalando/go-keyring => github.com/Infisical/go-keyring v1.0.2
