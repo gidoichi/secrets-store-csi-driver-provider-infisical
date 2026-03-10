@@ -9,6 +9,9 @@
     "dependencies"
   ],
   "schedule": "* * 1-7 * 6",
+  "git-submodules": {
+    "enabled": true
+  },
   "customManagers": [
     {
       "customType": "regex",
