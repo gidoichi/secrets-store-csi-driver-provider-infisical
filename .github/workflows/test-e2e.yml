@@ -23,17 +23,17 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Get the latest tag
-        id: latest
-        uses: anothrNick/github-tag-action@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DRY_RUN: true
+        id: latest-tag
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          dry_run: "true"
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
       - name: Determine tag
         id: determined
         env:
           TAG_TYPE: ${{ inputs.tag-type }}
           INPUT_TAG: ${{ inputs.image-tag }}
-          LATEST_TAG: ${{ steps.latest.outputs.old_tag }}
+          LATEST_TAG: ${{ steps.latest-tag.outputs.previous_tag }}
         run: |
           set -eux
           case "$TAG_TYPE" in
