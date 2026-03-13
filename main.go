@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	runtimeVersion = "1.0.26"
+	runtimeVersion = "1.0.27"
 	versionFlag    = flag.Bool("version", false, "print version information")
 )
 
