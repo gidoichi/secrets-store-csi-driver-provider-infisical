@@ -12,6 +12,14 @@
   "git-submodules": {
     "enabled": true
   },
+  "hostRules": [
+    {
+      "description": "token: https://app.docker.com/accounts/gidoichi/settings/personal-access-tokens > https://developer.mend.io/github/gidoichi/secrets-store-csi-driver-provider-infisical",
+      "matchHost": "dhi.io",
+      "username": "gidoichi",
+      "password": "{{ secrets.DOCKERHUB_TOKEN }}"
+    }
+  ],
   "customManagers": [
     {
       "customType": "regex",
