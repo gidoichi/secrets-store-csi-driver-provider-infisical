@@ -57,6 +57,7 @@
     {
       "groupName": "dependencies",
       "recreateWhen": "always",
+      "commitMessagePrefix": "[update:patch]",
       "matchPackageNames": [
         "*"
       ],
