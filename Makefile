@@ -1,3 +1,7 @@
+.PHONY: deployment
+deployment:
+	helm template --namespace kube-system --skip-tests secrets-store-csi-driver-provider-infisical charts/secrets-store-csi-driver-provider-infisical | grep -v -e '^ *helm\.sh/chart: ' -e '^ *app\.kubernetes\.io/managed-by: Helm$$' -e '^# Source: ' > deployment/infisical-csi-provider.yaml
+
 BATS := ./test/bats/bin/bats
 BATSFLAGS := -t test/e2e.bats --show-output-of-passing-tests --timing --trace --verbose-run
 

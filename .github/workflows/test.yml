@@ -91,7 +91,5 @@ jobs:
       - uses: azure/setup-helm@v5.0.0
       - name: Update kuberenetes manifest
         run: |
-          diff \
-              deployment/infisical-csi-provider.yaml \
-              <(helm template --namespace kube-system --skip-tests secrets-store-csi-driver-provider-infisical charts/secrets-store-csi-driver-provider-infisical | grep -v -e '^ *helm\.sh/chart: ' -e '^ *app.kubernetes.io/managed-by: Helm$' -e '^# Source: ') \
-              >&2
+          make deployment
+          git diff --exit-code
