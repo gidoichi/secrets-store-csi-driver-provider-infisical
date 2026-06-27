@@ -65,6 +65,7 @@
     {
       "groupName": "dependencies",
       "recreateWhen": "always",
+      "prTitle": "{{{commitMessageAction}}} {{{commitMessageTopic}}} {{{commitMessageExtra}}} {{{commitMessageSuffix}}}",
       "commitMessagePrefix": "[update:patch]",
       "matchPackageNames": [
         "*"
