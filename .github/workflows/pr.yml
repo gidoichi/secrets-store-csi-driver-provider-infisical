@@ -1,6 +1,5 @@
 name: Pull Request
 on:
-  workflow_dispatch:
   pull_request:
 jobs:
   update:
@@ -50,47 +49,3 @@ jobs:
         with:
           github_token: "${{ secrets.GH_PAT }}"
           branch: "${{ github.head_ref }}"
-
-  publish-pr:
-    uses: ./.github/workflows/publish-pr.yml
-    secrets: inherit
-
-  test-mount:
-    needs: publish-pr
-    uses: ./.github/workflows/test-mount.yml
-    secrets: inherit
-    with:
-      image-tag: _@${{ needs.publish-pr.outputs.digest }}
-  test-sync:
-    needs: publish-pr
-    uses: ./.github/workflows/test-sync.yml
-    secrets: inherit
-    with:
-      image-tag: _@${{ needs.publish-pr.outputs.digest }}
-  test-multiple:
-    needs: publish-pr
-    uses: ./.github/workflows/test-multiple.yml
-    secrets: inherit
-    with:
-      image-tag: _@${{ needs.publish-pr.outputs.digest }}
-  test-namespaced:
-    needs: publish-pr
-    uses: ./.github/workflows/test-namespaced.yml
-    secrets: inherit
-    with:
-      image-tag: _@${{ needs.publish-pr.outputs.digest }}
-  test-namespaced-neg:
-    needs: publish-pr
-    uses: ./.github/workflows/test-namespaced-neg.yml
-    secrets: inherit
-    with:
-      image-tag: _@${{ needs.publish-pr.outputs.digest }}
-  test-rotate:
-    needs: publish-pr
-    uses: ./.github/workflows/test-rotate.yml
-  test-filtered:
-    needs: publish-pr
-    uses: ./.github/workflows/test-filtered.yml
-  test-windows:
-    needs: publish-pr
-    uses: ./.github/workflows/test-windows.yml

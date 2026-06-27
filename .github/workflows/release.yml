@@ -1,0 +1,73 @@
+name: Release
+on:
+  push:
+    branches: ["main"]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      old-tag: ${{ steps.old-tag.outputs.tag }}
+      new-tag: ${{ steps.new-tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions-ecosystem/action-get-latest-tag@v1
+        id: old-tag
+      - name: Semantic Release
+        uses: cocogitto/cocogitto-action@v4
+        with:
+          command: bump
+          args: --auto --disable-bump-commit
+      - uses: actions-ecosystem/action-get-latest-tag@v1
+        id: new-tag
+
+  tag:
+    needs: check
+    if: ${{ needs.check.outputs.new-tag != needs.check.outputs.old-tag }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      value: v${{ steps.version.outputs.runtime }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - name: Get runtime version
+        id: version
+        run: printf 'runtime=%s' "$(go run main.go --version)" >> "$GITHUB_OUTPUT"
+      - uses: actions-ecosystem/action-push-tag@v1
+        with:
+          tag: ${{ steps.version.outputs.runtime }}
+
+  container:
+    needs: check
+    if: ${{ needs.check.outputs.new-tag != needs.check.outputs.old-tag }}
+    permissions:
+      contents: write
+    uses: ./.github/workflows/publish-container.yml
+    secrets: inherit
+    with:
+      tag: ${{ needs.check.outputs.new-tag }}
+
+  gh-release:
+    if: ${{ needs.check.outputs.new-tag != needs.check.outputs.old-tag }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: azure/setup-helm@v5
+      - name: Generate Charts
+        working-directory: charts
+        run: |
+          set -eux
+          helm package secrets-store-csi-driver-provider-infisical
+          for file in *.tgz; do mv {,chart-}"$file"; done
+      - uses: softprops/action-gh-release@v3
+        with:
+          files: charts/chart-*.tgz
+          tag_name: ${{ inputs.tag }}
+          token: ${{ secrets.GITHUB_TOKEN }}
