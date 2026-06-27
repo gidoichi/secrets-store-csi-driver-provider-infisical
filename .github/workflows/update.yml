@@ -1,6 +1,6 @@
-name: Pull Request
+name: Update
 on:
-  pull_request:
+  push:
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -21,6 +21,7 @@ jobs:
         with:
           dry_run: "true"
           github_token: "${{ secrets.GITHUB_TOKEN }}"
+          release_branches: ".*"
       - name: Increment version
         run: |
           set -eux
@@ -48,4 +49,4 @@ jobs:
         uses: actions-js/push@master
         with:
           github_token: "${{ secrets.GH_PAT }}"
-          branch: "${{ github.head_ref }}"
+          branch: "${{ github.ref_name }}"
