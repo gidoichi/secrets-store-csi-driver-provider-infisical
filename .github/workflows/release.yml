@@ -7,20 +7,16 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       old-tag: ${{ steps.old-tag.outputs.tag }}
-      new-tag: ${{ steps.new-tag.outputs.tag }}
+      new-tag: v${{ steps.new-tag.outputs.tag }}
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - uses: actions-ecosystem/action-get-latest-tag@v1
         id: old-tag
-      - name: Semantic Release
-        uses: cocogitto/cocogitto-action@v4
-        with:
-          command: bump
-          args: --auto --disable-bump-commit
-      - uses: actions-ecosystem/action-get-latest-tag@v1
+      - name: Get runtime version
         id: new-tag
+        run: printf 'runtime=%s' "$(go run main.go --version)" >> "$GITHUB_OUTPUT"
 
   tag:
     needs: check
@@ -32,15 +28,9 @@ jobs:
       value: v${{ steps.version.outputs.runtime }}
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-go@v6
+      - uses: thejeff77/action-push-tag@v1.0.0
         with:
-          go-version-file: go.mod
-      - name: Get runtime version
-        id: version
-        run: printf 'runtime=%s' "$(go run main.go --version)" >> "$GITHUB_OUTPUT"
-      - uses: actions-ecosystem/action-push-tag@v1
-        with:
-          tag: ${{ steps.version.outputs.runtime }}
+          tag: ${{ needs.check.outputs.new-tag }}
 
   container:
     needs: check
