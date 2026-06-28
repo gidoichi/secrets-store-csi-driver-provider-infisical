@@ -22,6 +22,7 @@ jobs:
           dry_run: "true"
           github_token: "${{ secrets.GITHUB_TOKEN }}"
           release_branches: ".*"
+      - uses: azure/setup-helm@v5.0.1
       - name: Increment version
         run: |
           set -eux
