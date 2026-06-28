@@ -1,7 +1,8 @@
 name: Test
-on:
-  workflow_dispatch:
-  push:
+on: push
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   build-container:
     runs-on: ubuntu-latest
@@ -93,3 +94,54 @@ jobs:
         run: |
           make deployment
           git diff --exit-code
+
+  publish-container:
+    uses: ./.github/workflows/publish-container.yml
+    secrets: inherit
+
+  test-mount:
+    needs: publish-container
+    uses: ./.github/workflows/test-mount.yml
+    secrets: inherit
+    with:
+      image-tag: _@${{ needs.publish-container.outputs.digest }}
+
+  test-sync:
+    needs: publish-container
+    uses: ./.github/workflows/test-sync.yml
+    secrets: inherit
+    with:
+      image-tag: _@${{ needs.publish-container.outputs.digest }}
+
+  test-multiple:
+    needs: publish-container
+    uses: ./.github/workflows/test-multiple.yml
+    secrets: inherit
+    with:
+      image-tag: _@${{ needs.publish-container.outputs.digest }}
+
+  test-namespaced:
+    needs: publish-container
+    uses: ./.github/workflows/test-namespaced.yml
+    secrets: inherit
+    with:
+      image-tag: _@${{ needs.publish-container.outputs.digest }}
+
+  test-namespaced-neg:
+    needs: publish-container
+    uses: ./.github/workflows/test-namespaced-neg.yml
+    secrets: inherit
+    with:
+      image-tag: _@${{ needs.publish-container.outputs.digest }}
+
+  test-rotate:
+    needs: publish-container
+    uses: ./.github/workflows/test-rotate.yml
+
+  test-filtered:
+    needs: publish-container
+    uses: ./.github/workflows/test-filtered.yml
+
+  test-windows:
+    needs: publish-container
+    uses: ./.github/workflows/test-windows.yml
