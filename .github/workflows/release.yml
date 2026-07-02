@@ -44,7 +44,7 @@ jobs:
       tag: ${{ needs.check.outputs.new-tag }}
 
   gh-release:
-    needs: check
+    needs: [check, tag]
     if: ${{ needs.check.outputs.new-tag != needs.check.outputs.old-tag }}
     runs-on: ubuntu-latest
     permissions:
@@ -61,5 +61,5 @@ jobs:
       - uses: softprops/action-gh-release@v3
         with:
           files: charts/chart-*.tgz
-          tag_name: ${{ inputs.tag }}
+          tag_name: ${{ needs.check.outputs.new-tag }}
           token: ${{ secrets.GITHUB_TOKEN }}
