@@ -77,7 +77,7 @@
       ]
     },
     {
-      "commitMessagePrefix": "",
+      "commitMessagePrefix": null,
       "matchFileNames": [
         ".github/**"
       ]
