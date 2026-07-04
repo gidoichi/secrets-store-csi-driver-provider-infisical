@@ -4,14 +4,19 @@
     "config:recommended",
     ":configMigration"
   ],
+  "automerge": true,
   "branchConcurrentLimit": 0,
-  "labels": [
-    "dependencies"
-  ],
-  "schedule": "* * 1-7 * 6",
+  "commitMessagePrefix": "[update:patch]",
   "git-submodules": {
     "enabled": true
   },
+  "labels": [
+    "automerge",
+    "dependencies"
+  ],
+  "prTitle": "{{{commitMessageAction}}} {{{commitMessageTopic}}} {{{commitMessageExtra}}} {{{commitMessageSuffix}}}",
+  "recreateWhen": "always",
+  "schedule": "* 0 1-7 * 6",
   "hostRules": [
     {
       "description": "token: https://app.docker.com/accounts/gidoichi/settings/personal-access-tokens > https://developer.mend.io/github/gidoichi/secrets-store-csi-driver-provider-infisical",
@@ -64,15 +69,17 @@
     },
     {
       "groupName": "dependencies",
-      "recreateWhen": "always",
-      "prTitle": "{{{commitMessageAction}}} {{{commitMessageTopic}}} {{{commitMessageExtra}}} {{{commitMessageSuffix}}}",
-      "commitMessagePrefix": "[update:patch]",
       "matchPackageNames": [
         "*"
       ],
-      "automerge": true,
-      "addLabels": [
-        "automerge"
+      "matchFileNames": [
+        "!.github/**"
+      ]
+    },
+    {
+      "commitMessagePrefix": "",
+      "matchFileNames": [
+        ".github/**"
       ]
     }
   ]
