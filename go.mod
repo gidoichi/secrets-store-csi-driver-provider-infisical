@@ -11,7 +11,7 @@ require (
 	go.uber.org/mock v0.6.0
 	go.uber.org/thriftrw v1.34.0
 	golang.org/x/mod v0.37.0
-	google.golang.org/grpc v1.81.1
+	google.golang.org/grpc v1.82.0
 	k8s.io/apimachinery v0.36.2
 	k8s.io/client-go v0.36.2
 	sigs.k8s.io/secrets-store-csi-driver v1.6.0
@@ -90,8 +90,8 @@ require (
 	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
 	google.golang.org/api v0.267.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20260226221140-a57be14db171 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260226221140-a57be14db171 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20260414002931-afd174a4e478 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260414002931-afd174a4e478 // indirect
 	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.13.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
@@ -106,6 +106,6 @@ require (
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
-replace github.com/Infisical/infisical-merge => github.com/Infisical/infisical/cli v0.161.9
+replace github.com/Infisical/infisical-merge => github.com/Infisical/infisical/cli v0.161.12
 
 replace github.com/zalando/go-keyring => github.com/Infisical/go-keyring v1.0.2
