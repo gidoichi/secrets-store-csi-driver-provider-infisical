@@ -1,11 +1,11 @@
-FROM dhi.io/golang:1.26.4 AS builder
+FROM dhi.io/golang:1.26.5 AS builder
 WORKDIR /usr/src/app
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify
 COPY . .
 RUN go install
 
-FROM dhi.io/golang:1.26.4 AS admission-webhook
+FROM dhi.io/golang:1.26.5 AS admission-webhook
 WORKDIR /usr/src/app
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify
