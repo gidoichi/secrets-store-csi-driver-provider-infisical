@@ -17,6 +17,10 @@
   "prTitle": "{{{commitMessageAction}}} {{{commitMessageTopic}}} {{{commitMessageExtra}}} {{{commitMessageSuffix}}}",
   "recreateWhen": "always",
   "schedule": "* 0 1-7 * 6",
+  "postUpdateOptions": [
+    "gomodTidyAll",
+    "gomodUpdateImportPaths"
+  ],
   "hostRules": [
     {
       "description": "token: https://app.docker.com/accounts/gidoichi/settings/personal-access-tokens > https://developer.mend.io/github/gidoichi/secrets-store-csi-driver-provider-infisical",
