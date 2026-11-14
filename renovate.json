@@ -14,7 +14,6 @@
     "automerge",
     "dependencies"
   ],
-  "prTitle": "{{{commitMessageAction}}} {{{commitMessageTopic}}} {{{commitMessageExtra}}} {{{commitMessageSuffix}}}",
   "recreateWhen": "always",
   "schedule": "* 0 1-7 * 6",
   "postUpdateOptions": [
